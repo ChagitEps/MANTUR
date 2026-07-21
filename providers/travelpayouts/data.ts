@@ -24,11 +24,14 @@ interface RawFlight {
   origin_airport?: string;
   destination_airport?: string;
   departure_at?: string;
+  return_at?: string;
   airline?: string;
   price?: number;
   gate?: string;
   transfers?: number;
+  return_transfers?: number;
   duration?: number;
+  duration_back?: number;
   flight_number?: string;
 }
 
@@ -79,6 +82,9 @@ export async function searchFlights(
       durationMinutes: r.duration ?? 0,
       gate: r.gate ?? "",
       handoffUrl,
+      returnAt: r.return_at || undefined,
+      returnTransfers: r.return_at ? (r.return_transfers ?? 0) : undefined,
+      returnDurationMinutes: r.return_at ? (r.duration_back ?? 0) : undefined,
     } satisfies FlightResult;
   });
 }

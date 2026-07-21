@@ -40,6 +40,10 @@ export interface FlightResult {
   gate: string;
   /** deep-link מתויג (marker) להזמנה אצל השותף. */
   handoffUrl: string;
+  /** חזור (הלוך-חזור בלבד). */
+  returnAt?: string;
+  returnTransfers?: number;
+  returnDurationMinutes?: number;
 }
 
 /** תוצאת מלון בודדת (מ-Hotellook Data API), מוכנה להצגה. */
