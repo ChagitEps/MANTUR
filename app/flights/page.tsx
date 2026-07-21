@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Header } from "@/components/Header";
 import { FlightResultCard } from "@/components/FlightResultCard";
-import { searchFlights } from "@/providers/travelpayouts/data";
+import { searchFlightsSmart } from "@/providers/travelpayouts/data";
 import { getDestinationImage } from "@/lib/travel/destination-image";
 import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
 import type { FlightResult } from "@/lib/travel/types";
@@ -38,22 +38,31 @@ export default async function FlightsPage({
 
   let results: FlightResult[] = [];
   let failed = false;
+  let flexible = false; // תוצאות מהחודש (לא בדיוק התאריכים שביקשו)
   let heroImage: string | null = null;
 
   if (valid) {
     const [flightsRes, img] = await Promise.all([
-      searchFlights({ origin, destination, departDate, returnDate }).then(
-        (r) => ({ ok: true as const, r }),
-        () => ({ ok: false as const, r: [] as FlightResult[] }),
+      searchFlightsSmart({ origin, destination, departDate, returnDate }).then(
+        (r) => ({ ok: true as const, ...r }),
+        () => ({ ok: false as const, results: [] as FlightResult[], flexible: false }),
       ),
       destName ? getDestinationImage(destName) : Promise.resolve(null),
     ]);
-    results = flightsRes.r;
+    results = flightsRes.results;
+    flexible = flightsRes.flexible;
     failed = !flightsRes.ok;
     heroImage = img;
   }
 
   const title = destName ? `טיסות ל${shortName(destName)}` : `טיסות ${origin} ← ${destination}`;
+  const monthLabel =
+    departDate.length >= 7
+      ? new Date(`${departDate.slice(0, 7)}-01T00:00:00`).toLocaleDateString(
+          "he-IL",
+          { month: "long", year: "numeric" },
+        )
+      : "";
 
   return (
     <>
@@ -102,9 +111,21 @@ export default async function FlightsPage({
 
         {valid && !failed && results.length === 0 && (
           <div className="rounded-xl border border-border bg-surface p-6 text-center">
-            <p className="font-medium">לא נמצאו טיסות לתאריך הזה.</p>
+            <p className="font-medium">לא נמצאו טיסות ליעד זה.</p>
             <p className="mt-1 text-sm text-muted">
-              נסו תאריך אחר, יעד אחר, או חיפוש לכל מקום.
+              נסו יעד אחר, או בדקו זמינות ישירות אצל השותף.
+            </p>
+          </div>
+        )}
+
+        {flexible && results.length > 0 && (
+          <div className="mb-4 rounded-xl border border-brand/30 bg-brand/5 p-4 text-sm">
+            <p className="font-medium">
+              אין מחיר שמור בדיוק לתאריכים שביקשת — הנה הטיסות הזמינות
+              {monthLabel ? ` ל${shortName(destName) || destination} ב${monthLabel}` : ""}:
+            </p>
+            <p className="mt-1 text-muted">
+              בחרו טיסה והמשיכו לבדיקת זמינות ומחיר מדויק אצל השותף, או שנו תאריכים בחיפוש.
             </p>
           </div>
         )}

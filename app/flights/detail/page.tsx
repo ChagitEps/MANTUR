@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { AirlineBadge, GateBadge } from "@/components/FlightBadges";
-import { searchFlights } from "@/providers/travelpayouts/data";
+import { searchFlightsSmart } from "@/providers/travelpayouts/data";
 import {
   formatDateTime,
   formatDuration,
@@ -73,7 +73,7 @@ export default async function FlightDetailPage({
   let flight = null;
   if (origin && destination && departDate && fid) {
     try {
-      const results = await searchFlights({
+      const { results } = await searchFlightsSmart({
         origin,
         destination,
         departDate,
