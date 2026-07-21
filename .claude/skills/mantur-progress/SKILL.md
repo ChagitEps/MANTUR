@@ -8,28 +8,41 @@ description: Current build progress and next steps for the MANTUR project — wh
 > קובץ **חי** — לעדכן בסוף כל שלב בנייה כדי שיישאר מדויק.
 
 ## מה כבר נבנה ✅
-- שלד **Next.js 16** (App Router, Turbopack) + TypeScript strict + **Tailwind v4**, בשורש הפרויקט.
-- **RTL + עברית**: `dir="rtl"`, `lang="he"`, פונט Rubik — ב-`app/layout.tsx`.
+- שלד **Next.js 16** (App Router, Turbopack) + TS strict + **Tailwind v4**, RTL/עברית (Rubik) — `app/layout.tsx`.
 - מבנה תיקיות: `components/`, `lib/`, `providers/`, `supabase/migrations/`.
-- **דף בית ראשוני** (`app/page.tsx`): Header + Hero + בר חיפוש.
-  - `components/Header.tsx` — לוגו + ניווט.
-  - `components/SearchBar.tsx` — **טוגל חו״ל/בארץ** (בארץ מסתיר טיסות), **לשוניות טיסות/מלונות**, שדות, נגיש + RTL. **החיפוש עדיין לא מחובר** — stub, בלי תוצאות מזויפות.
-- `CLAUDE.md` + 5 Skills (`mantur-workflow/database/backend/frontend/security`) מכוונים לאפיון הקנוני `afyun-travel-site-v2-agent.md`.
-- **git + GitHub**: `ChagitEps/MANTUR`, ענף `main`.
+- **עיצוב בהיר** (globals.css: מצב כהה מנוטרל, פלטה בהירה + `--brand` תכלת).
+- **דף בית** (`app/page.tsx`): Header + Hero + בר חיפוש (`components/SearchBar.tsx`) — טוגל חו״ל/בארץ, לשוניות טיסות/מלונות, נגיש+RTL. **widgets עשירים:**
+  - `components/LocationInput.tsx` → `/api/places` (route שלנו): **חיפוש בעברית** מרשימה מתורגמת (`lib/travel/places-he.ts`, ~65 יעדים) + fallback לאנגלית (Travelpayouts). TP לא מחזיר עברית, לכן הרשימה הידנית.
+  - `components/DateRangeField.tsx` — לוח שנה עם טווח (react-day-picker v10, locale he, RTL); "עד מתי" ממלא את תיבת החזרה.
+  - `components/GuestsField.tsx` — סטפר נוסעים; במלונות גם **חדרים**.
+  - `lib/hooks/useClickOutside.ts`. deps חדשים: `react-day-picker`, `date-fns`.
+- **שכבת Provider** (provider-independence):
+  - `providers/types.ts` — חוזה `TravelProvider` (link builders ל-handoff, client-safe, marker ציבורי).
+  - `providers/travelpayouts/index.ts` — deep-links מתויגים (Aviasales search-code / Hotellook).
+  - `providers/travelpayouts/data.ts` — **server-only** (`import "server-only"`): `searchFlights()` מול Aviasales Data API (`api.travelpayouts.com/aviasales/v3/prices_for_dates`), אימות ב-header `X-Access-Token`, cache 15 דק'.
+  - `lib/travel/types.ts` — טיפוסי חיפוש + `FlightResult`.
+- **עמוד תוצאות טיסות** (`app/flights/`): Server Component שמושך נתונים אמיתיים ומציג בעמוד שלנו — כרטיסי טיסה (`components/FlightResultCard.tsx`) עם מחיר/חברה/מסלול, כפתור **"המשך להזמנה"** → handoff מתויג. מצבי loading/empty/error. ✔ אומת חי: ₪418, marker=742034 בהפניה.
+  - **זרימה:** בר חיפוש (טיסות) → `/flights` בעמוד שלנו → אישור בכל תוצאה → מעבר לשותף.
+- **Travelpayouts**: Project + **marker 742034** + **API token** — ב-`.env.local` (מוחרג מ-git). marker גם ב-`NEXT_PUBLIC_TRAVELPAYOUTS_MARKER`.
+- `CLAUDE.md` + Skills (`mantur-*`) מכוונים לאפיון `afyun-travel-site-v2-agent.md`. git+GitHub: `ChagitEps/MANTUR`.
+
+## מה כבר נבנה — המשך ✅
+- **עמוד תוצאות מלונות** (`app/hotels/`, `components/HotelResultCard.tsx`, `searchHotels` ב-data.ts) — כמו טיסות: תוצאות בעמוד שלנו + "המשך להזמנה" מתויג. בר החיפוש (מלונות) → `/hotels`.
 
 ## מה חסר / חוסם ⏳
-- אין עדיין `.env.local` ומפתחות: **Travelpayouts (marker + token)**, Supabase, Anthropic API key.
-- בר החיפוש לא יבצע חיפוש עד שתיבנה שכבת ה-Provider ויהיו מפתחות Travelpayouts.
+- **אימות נתוני מלונות** — `engine.hotellook.com` **חוסם את ה-IP המקומי** (404), אז לא אומת מקומית. העמוד מרונדר עם error state נקי (פרסינג הגנתי). **לאמת מהדפדפן של המשתמשת (IP לא חסום) או מ-Vercel.**
+- Supabase, Anthropic — לשלבים מאוחרים.
 
 ## הרצה
-`npm run dev` → http://localhost:3000
+`npm run dev` → http://localhost:3000 (צריך `.env.local` עם ה-token; אחרי שינוי env — restart לשרת).
 
-## סדר בנייה (MVP — שלב 1 באפיון)
-1. ✅ תשתית + דף בית (UI).
-2. ⏭️ **שכבת Provider ל-Travelpayouts** (`providers/`) — החוזה שדרכו עוברים טיסות/מלונות. *חוסם: marker + token.*
-3. חיבור בר החיפוש → קריאת חיפוש אמיתית.
-4. עמוד תוצאות + עמוד פרט + **handoff מתויג**.
-5. 3 עמודי יעד (SEO) + גילוי נאות → סוגר שלב 1 ("אתר חי שמייצר הזמנות").
+## סדר בנייה (MVP — שלב 1)
+1. ✅ תשתית + דף בית.
+2. ✅ שכבת Provider + handoff מתויג.
+3. ✅ **עמוד תוצאות טיסות** (נתונים אמיתיים בעמוד שלנו + אישור→handoff).
+4. ⏭️ **עמוד תוצאות מלונות** (Hotellook Data API — לבדוק מ-Vercel/דפדפן).
+5. אוטוקומפליט ערים→IATA; route `/api/go` לתיעוד קליקים+analytics.
+6. עמודי יעד (SEO) + גילוי נאות → סוגר שלב 1.
 
 ## הצעד הבא
-שכבת ה-Provider ל-Travelpayouts (שלב 2 ברשימה). כדי להתחיל אותה צריך את מפתחות ה-Travelpayouts.
+עמוד תוצאות מלונות (כמו טיסות), או אוטוקומפליט ערים. לבדוק את Hotellook Data API מ-Vercel (לא חסום שם) — לכן שווה לפרוס.

@@ -1,52 +1,84 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import type { DateRange } from "react-day-picker";
+import { getTravelProvider } from "@/providers/travelpayouts";
+import type { Scope } from "@/lib/travel/types";
+import { LocationInput, type SelectedPlace } from "@/components/LocationInput";
+import { DateRangeField } from "@/components/DateRangeField";
+import { GuestsField } from "@/components/GuestsField";
 
-type Scope = "abroad" | "domestic";
 type Tab = "flights" | "hotels";
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="flex flex-col gap-1 text-start">
-      <span className="text-xs font-medium text-foreground/60">{label}</span>
-      {children}
-    </label>
-  );
+function toISO(d: Date): string {
+  return d.toLocaleDateString("en-CA"); // YYYY-MM-DD
 }
 
-const inputClass =
-  "h-11 rounded-lg border border-black/15 bg-background px-3 text-sm outline-none focus:border-foreground/50 dark:border-white/15";
-
 export function SearchBar() {
+  const router = useRouter();
   const [scope, setScope] = useState<Scope>("abroad");
   const [tab, setTab] = useState<Tab>("flights");
+  const [error, setError] = useState<string | null>(null);
 
-  // במצב "בארץ" אין טיסות — כופה לשונית מלונות ומסתיר את "טיסות".
+  const [origin, setOrigin] = useState<SelectedPlace | null>(null);
+  const [destination, setDestination] = useState<SelectedPlace | null>(null);
+  const [range, setRange] = useState<DateRange | undefined>();
+  const [adults, setAdults] = useState(1);
+  const [rooms, setRooms] = useState(1);
+
+  // במצב "בארץ" אין טיסות — כופה מלונות ומסתיר את "טיסות".
   const effectiveTab: Tab = scope === "domestic" ? "hotels" : tab;
 
   function handleScope(next: Scope) {
     setScope(next);
+    setError(null);
     if (next === "domestic") setTab("hotels");
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO: לחבר לשכבת ה-Provider של Travelpayouts (ראה skill: mantur-backend).
+    setError(null);
+
+    if (effectiveTab === "flights") {
+      if (!origin?.code || !destination?.code || !range?.from) {
+        setError("יש לבחור מוצא, יעד ותאריך יציאה.");
+        return;
+      }
+      const params = new URLSearchParams({
+        origin: origin.code,
+        destination: destination.code,
+        depart: toISO(range.from),
+        adults: String(adults),
+      });
+      if (range.to) params.set("return", toISO(range.to));
+      router.push(`/flights?${params.toString()}`);
+      return;
+    }
+
+    // מלונות: handoff מתויג לשותף (Booking דרך Travelpayouts).
+    // Hotellook נסגר (אוקטובר 2025) — עמוד תוצאות משלנו ממתין לספק מלונות עם API.
+    if (!destination?.code || !range?.from || !range?.to) {
+      setError("יש לבחור יעד, צ׳ק-אין וצ׳ק-אאוט.");
+      return;
+    }
+    const url = getTravelProvider().hotelSearchUrl({
+      destination: destination.code,
+      checkIn: toISO(range.from),
+      checkOut: toISO(range.to),
+      adults,
+      rooms,
+    });
+    window.open(url, "_blank", "noopener");
   }
 
   return (
-    <div className="w-full rounded-2xl border border-black/10 bg-background p-4 shadow-lg sm:p-5 dark:border-white/10">
+    <div className="w-full rounded-2xl border border-border bg-surface p-4 shadow-lg sm:p-5">
       {/* טוגל חו"ל / בארץ */}
       <div
         role="group"
         aria-label="יעד החיפוש"
-        className="mb-4 inline-flex rounded-full border border-black/10 p-1 dark:border-white/10"
+        className="mb-4 inline-flex rounded-full border border-border p-1"
       >
         {(
           [
@@ -61,8 +93,8 @@ export function SearchBar() {
             onClick={() => handleScope(value)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               scope === value
-                ? "bg-foreground text-background"
-                : "text-foreground/70 hover:text-foreground"
+                ? "bg-brand text-brand-foreground"
+                : "text-muted hover:text-foreground"
             }`}
           >
             {label}
@@ -77,11 +109,14 @@ export function SearchBar() {
             role="tab"
             type="button"
             aria-selected={effectiveTab === "flights"}
-            onClick={() => setTab("flights")}
+            onClick={() => {
+              setTab("flights");
+              setError(null);
+            }}
             className={`rounded-lg px-4 py-2 text-sm font-medium ${
               effectiveTab === "flights"
-                ? "bg-black/5 dark:bg-white/10"
-                : "text-foreground/60 hover:text-foreground"
+                ? "bg-black/5 text-foreground"
+                : "text-muted hover:text-foreground"
             }`}
           >
             טיסות
@@ -91,11 +126,14 @@ export function SearchBar() {
           role="tab"
           type="button"
           aria-selected={effectiveTab === "hotels"}
-          onClick={() => setTab("hotels")}
+          onClick={() => {
+            setTab("hotels");
+            setError(null);
+          }}
           className={`rounded-lg px-4 py-2 text-sm font-medium ${
             effectiveTab === "hotels"
-              ? "bg-black/5 dark:bg-white/10"
-              : "text-foreground/60 hover:text-foreground"
+              ? "bg-black/5 text-foreground"
+              : "text-muted hover:text-foreground"
           }`}
         >
           מלונות
@@ -104,48 +142,84 @@ export function SearchBar() {
 
       <form onSubmit={handleSubmit}>
         {effectiveTab === "flights" ? (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <Field label="מאיפה">
-              <input className={inputClass} placeholder="תל אביב (TLV)" />
-            </Field>
-            <Field label="לאן">
-              <input className={inputClass} placeholder="יעד או ״לכל מקום״" />
-            </Field>
-            <Field label="יציאה">
-              <input type="date" className={inputClass} />
-            </Field>
-            <Field label="חזרה">
-              <input type="date" className={inputClass} />
-            </Field>
-            <Field label="נוסעים">
-              <input type="number" min={1} defaultValue={1} className={inputClass} />
-            </Field>
-          </div>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Field label="יעד">
-              <input
-                className={inputClass}
-                placeholder={scope === "domestic" ? "עיר או אזור בארץ" : "עיר או מלון"}
+          <>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <LocationInput
+                label="מאיפה"
+                placeholder="עיר או שדה תעופה"
+                value=""
+                onSelect={setOrigin}
+                kind="flight"
               />
-            </Field>
-            <Field label="צ׳ק-אין">
-              <input type="date" className={inputClass} />
-            </Field>
-            <Field label="צ׳ק-אאוט">
-              <input type="date" className={inputClass} />
-            </Field>
-            <Field label="אורחים">
-              <input type="number" min={1} defaultValue={2} className={inputClass} />
-            </Field>
-          </div>
+              <LocationInput
+                label="לאן"
+                placeholder="עיר או שדה תעופה"
+                value=""
+                onSelect={setDestination}
+                kind="flight"
+              />
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <div className="sm:col-span-2">
+                <DateRangeField
+                  range={range}
+                  onChange={setRange}
+                  fromLabel="יציאה"
+                  toLabel="חזרה"
+                />
+              </div>
+              <GuestsField
+                adults={adults}
+                onChange={({ adults }) => setAdults(adults)}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <LocationInput
+                label="יעד"
+                placeholder={scope === "domestic" ? "עיר או אזור בארץ" : "עיר או מלון"}
+                value=""
+                onSelect={setDestination}
+                kind="hotel"
+              />
+              <GuestsField
+                adults={adults}
+                rooms={rooms}
+                withRooms
+                onChange={({ adults, rooms }) => {
+                  setAdults(adults);
+                  setRooms(rooms);
+                }}
+              />
+            </div>
+            <div className="mt-3">
+              <DateRangeField
+                range={range}
+                onChange={setRange}
+                fromLabel="צ׳ק-אין"
+                toLabel="צ׳ק-אאוט"
+              />
+            </div>
+          </>
+        )}
+
+        {error && (
+          <p role="alert" className="mt-3 text-sm text-red-600">
+            {error}
+          </p>
         )}
 
         <div className="mt-4 flex items-center justify-between gap-3">
-          <p className="text-xs text-foreground/50">החיפוש יחובר לספקים בשלב הבא.</p>
+          <p className="text-xs text-muted">
+            {effectiveTab === "flights"
+              ? "התוצאות יוצגו כאן באתר."
+              : "מלונות: מעבר לאתר השותף (Booking) עם ה-marker."}
+          </p>
           <button
             type="submit"
-            className="h-11 rounded-lg bg-foreground px-8 text-sm font-semibold text-background transition-opacity hover:opacity-90"
+            className="h-11 rounded-lg bg-brand px-8 text-sm font-semibold text-brand-foreground transition-opacity hover:opacity-90"
           >
             חיפוש
           </button>
