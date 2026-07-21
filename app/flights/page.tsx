@@ -113,7 +113,7 @@ export default async function FlightsPage({
 
         {results.length > 0 && (
           <div className="flex flex-col gap-3">
-            {results.map((f) => {
+            {results.map((f, i) => {
               const dp = new URLSearchParams({
                 origin,
                 destination,
@@ -124,7 +124,7 @@ export default async function FlightsPage({
               if (returnDate) dp.set("return", returnDate);
               return (
                 <FlightResultCard
-                  key={f.id}
+                  key={`${f.id}-${i}`}
                   flight={f}
                   detailHref={`/flights/detail?${dp.toString()}`}
                 />
