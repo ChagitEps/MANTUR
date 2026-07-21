@@ -15,14 +15,23 @@ function toISO(d: Date): string {
   return d.toLocaleDateString("en-CA"); // YYYY-MM-DD
 }
 
-export function SearchBar() {
+const DEFAULT_ORIGIN: SelectedPlace = { code: "TLV", name: "תל אביב" };
+
+export function SearchBar({
+  initialDestination,
+}: {
+  /** יעד מוגדר מראש (למשל בעמוד יעד). */
+  initialDestination?: SelectedPlace;
+} = {}) {
   const router = useRouter();
   const [scope, setScope] = useState<Scope>("abroad");
   const [tab, setTab] = useState<Tab>("flights");
   const [error, setError] = useState<string | null>(null);
 
-  const [origin, setOrigin] = useState<SelectedPlace | null>(null);
-  const [destination, setDestination] = useState<SelectedPlace | null>(null);
+  const [origin, setOrigin] = useState<SelectedPlace | null>(DEFAULT_ORIGIN);
+  const [destination, setDestination] = useState<SelectedPlace | null>(
+    initialDestination ?? null,
+  );
   const [range, setRange] = useState<DateRange | undefined>();
   const [adults, setAdults] = useState(1);
   const [rooms, setRooms] = useState(1);
@@ -48,6 +57,7 @@ export function SearchBar() {
       const params = new URLSearchParams({
         origin: origin.code,
         destination: destination.code,
+        destName: destination.name,
         depart: toISO(range.from),
         adults: String(adults),
       });
@@ -147,14 +157,14 @@ export function SearchBar() {
               <LocationInput
                 label="מאיפה"
                 placeholder="עיר או שדה תעופה"
-                value=""
+                value={DEFAULT_ORIGIN.name}
                 onSelect={setOrigin}
                 kind="flight"
               />
               <LocationInput
                 label="לאן"
                 placeholder="עיר או שדה תעופה"
-                value=""
+                value={initialDestination?.name ?? ""}
                 onSelect={setDestination}
                 kind="flight"
               />
@@ -180,7 +190,7 @@ export function SearchBar() {
               <LocationInput
                 label="יעד"
                 placeholder={scope === "domestic" ? "עיר או אזור בארץ" : "עיר או מלון"}
-                value=""
+                value={initialDestination?.name ?? ""}
                 onSelect={setDestination}
                 kind="hotel"
               />

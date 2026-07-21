@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Header } from "@/components/Header";
 import { FlightResultCard } from "@/components/FlightResultCard";
 import { searchFlights } from "@/providers/travelpayouts/data";
+import { getDestinationImage } from "@/lib/travel/destination-image";
+import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
 import type { FlightResult } from "@/lib/travel/types";
 
 export const metadata: Metadata = {
@@ -15,6 +18,10 @@ function one(v: string | string[] | undefined): string {
   return (Array.isArray(v) ? v[0] : v) ?? "";
 }
 
+function shortName(name: string): string {
+  return name.split(/[(,]/)[0].trim();
+}
+
 export default async function FlightsPage({
   searchParams,
 }: {
@@ -23,6 +30,7 @@ export default async function FlightsPage({
   const sp = await searchParams;
   const origin = one(sp.origin).toUpperCase();
   const destination = one(sp.destination).toUpperCase();
+  const destName = one(sp.destName);
   const departDate = one(sp.depart);
   const returnDate = one(sp.return) || undefined;
 
@@ -30,25 +38,52 @@ export default async function FlightsPage({
 
   let results: FlightResult[] = [];
   let failed = false;
+  let heroImage: string | null = null;
+
   if (valid) {
-    try {
-      results = await searchFlights({ origin, destination, departDate, returnDate });
-    } catch {
-      failed = true;
-    }
+    const [flightsRes, img] = await Promise.all([
+      searchFlights({ origin, destination, departDate, returnDate }).then(
+        (r) => ({ ok: true as const, r }),
+        () => ({ ok: false as const, r: [] as FlightResult[] }),
+      ),
+      destName ? getDestinationImage(destName) : Promise.resolve(null),
+    ]);
+    results = flightsRes.r;
+    failed = !flightsRes.ok;
+    heroImage = img;
   }
+
+  const title = destName ? `טיסות ל${shortName(destName)}` : `טיסות ${origin} ← ${destination}`;
 
   return (
     <>
       <Header />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
-        <h1 className="mb-1 text-2xl font-bold">
-          {valid ? `טיסות ${origin} ← ${destination}` : "חיפוש טיסות"}
-        </h1>
+        {valid && heroImage ? (
+          <div className="relative mb-4 aspect-[21/9] w-full overflow-hidden rounded-2xl">
+            <Image
+              src={heroImage}
+              alt={shortName(destName)}
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            <h1 className="absolute bottom-3 start-4 text-3xl font-bold text-white drop-shadow">
+              {title}
+            </h1>
+          </div>
+        ) : (
+          <h1 className="mb-1 text-2xl font-bold">
+            {valid ? title : "חיפוש טיסות"}
+          </h1>
+        )}
+
         {valid && (
-          <p className="mb-6 text-sm text-foreground/60">
-            {departDate}
-            {returnDate ? ` – ${returnDate}` : ""} · מחירים מ-Travelpayouts, אינדיקטיביים
+          <p className="mb-6 text-sm text-muted">
+            {origin} ← {destination} · {departDate}
+            {returnDate ? ` – ${returnDate}` : ""} · מחירים אינדיקטיביים
           </p>
         )}
 
@@ -61,18 +96,20 @@ export default async function FlightsPage({
         {valid && failed && (
           <div className="rounded-xl border border-border bg-surface p-6 text-center">
             <p className="font-medium">לא הצלחנו לקבל תוצאות כרגע.</p>
-            <p className="mt-1 text-sm text-foreground/60">נסו שוב בעוד מספר דקות.</p>
+            <p className="mt-1 text-sm text-muted">נסו שוב בעוד מספר דקות.</p>
           </div>
         )}
 
         {valid && !failed && results.length === 0 && (
           <div className="rounded-xl border border-border bg-surface p-6 text-center">
             <p className="font-medium">לא נמצאו טיסות לתאריך הזה.</p>
-            <p className="mt-1 text-sm text-foreground/60">
+            <p className="mt-1 text-sm text-muted">
               נסו תאריך אחר, יעד אחר, או חיפוש לכל מקום.
             </p>
           </div>
         )}
+
+        {valid && <div className="mb-4"><AffiliateDisclosure /></div>}
 
         {results.length > 0 && (
           <div className="flex flex-col gap-3">
@@ -83,6 +120,7 @@ export default async function FlightsPage({
                 depart: departDate,
                 fid: f.id,
               });
+              if (destName) dp.set("destName", destName);
               if (returnDate) dp.set("return", returnDate);
               return (
                 <FlightResultCard

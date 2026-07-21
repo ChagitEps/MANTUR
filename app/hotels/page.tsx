@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { HotelResultCard } from "@/components/HotelResultCard";
 import { searchHotels } from "@/providers/travelpayouts/data";
+import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
 import type { HotelResult } from "@/lib/travel/types";
 
 export const metadata: Metadata = {
@@ -78,6 +79,8 @@ export default async function HotelsPage({
             <p className="mt-1 text-sm text-muted">נסו תאריכים או יעד אחר.</p>
           </div>
         )}
+
+        {valid && <div className="mb-4"><AffiliateDisclosure /></div>}
 
         {results.length > 0 && (
           <div className="flex flex-col gap-3">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
+import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
 
 const rubik = Rubik({
   variable: "--font-rubik",
@@ -20,7 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="he" dir="rtl" className={`${rubik.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <AffiliateDisclosure variant="footer" />
+      </body>
     </html>
   );
 }
