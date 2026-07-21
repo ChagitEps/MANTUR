@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/Header";
+import { AirlineBadge, GateBadge } from "@/components/FlightBadges";
 import { searchFlights } from "@/providers/travelpayouts/data";
 import {
   formatDateTime,
@@ -47,11 +48,11 @@ function Leg({
         </span>
         <span>{to}</span>
       </div>
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+        {airline && <AirlineBadge code={airline} />}
         {at && <span>{formatDateTime(at)}</span>}
         <span>{transfersLabel(transfers)}</span>
         {duration > 0 && <span>{formatDuration(duration)}</span>}
-        {airline && <span>חברה: {airline}</span>}
       </div>
     </div>
   );
@@ -126,6 +127,7 @@ export default async function FlightDetailPage({
                   at={flight.returnAt}
                   transfers={flight.returnTransfers ?? 0}
                   duration={flight.returnDurationMinutes ?? 0}
+                  airline={flight.airline}
                 />
               )}
             </div>
@@ -137,7 +139,9 @@ export default async function FlightDetailPage({
                   {formatPrice(flight.price, flight.currency)}
                 </div>
                 {flight.gate && (
-                  <div className="text-xs text-muted">דרך {flight.gate}</div>
+                  <div className="mt-0.5">
+                    <GateBadge gate={flight.gate} />
+                  </div>
                 )}
               </div>
               <a

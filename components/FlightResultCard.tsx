@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { FlightResult } from "@/lib/travel/types";
+import { AirlineBadge } from "@/components/FlightBadges";
 import {
   formatDateTime,
   formatDuration,
@@ -24,11 +25,11 @@ export function FlightResultCard({
           </span>
           <span>{flight.destinationAirport}</span>
         </div>
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+          {flight.airline && <AirlineBadge code={flight.airline} />}
           {flight.departureAt && <span>{formatDateTime(flight.departureAt)}</span>}
           <span>{transfersLabel(flight.transfers)}</span>
           {flight.durationMinutes > 0 && <span>{formatDuration(flight.durationMinutes)}</span>}
-          {flight.airline && <span>חברה: {flight.airline}</span>}
         </div>
       </div>
 
