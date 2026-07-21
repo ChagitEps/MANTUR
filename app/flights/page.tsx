@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Header } from "@/components/Header";
 import { FlightResultCard } from "@/components/FlightResultCard";
-import { searchFlightsSmart } from "@/providers/travelpayouts/data";
+import { searchFlights } from "@/providers/travelpayouts/data";
+import { getTravelProvider } from "@/providers/travelpayouts";
 import { getDestinationImage } from "@/lib/travel/destination-image";
 import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
 import type { FlightResult } from "@/lib/travel/types";
@@ -33,36 +34,41 @@ export default async function FlightsPage({
   const destName = one(sp.destName);
   const departDate = one(sp.depart);
   const returnDate = one(sp.return) || undefined;
+  const adults = Number(one(sp.adults)) || 1;
 
   const valid = Boolean(origin && destination && departDate);
 
   let results: FlightResult[] = [];
   let failed = false;
-  let flexible = false; // תוצאות מהחודש (לא בדיוק התאריכים שביקשו)
   let heroImage: string | null = null;
 
   if (valid) {
+    // תאריך מדויק בלבד — בלי קירוב לחודש (בקשת המשתמשת).
     const [flightsRes, img] = await Promise.all([
-      searchFlightsSmart({ origin, destination, departDate, returnDate }).then(
-        (r) => ({ ok: true as const, ...r }),
-        () => ({ ok: false as const, results: [] as FlightResult[], flexible: false }),
+      searchFlights({ origin, destination, departDate, returnDate }).then(
+        (r) => ({ ok: true as const, r }),
+        () => ({ ok: false as const, r: [] as FlightResult[] }),
       ),
       destName ? getDestinationImage(destName) : Promise.resolve(null),
     ]);
-    results = flightsRes.results;
-    flexible = flightsRes.flexible;
+    results = flightsRes.r;
     failed = !flightsRes.ok;
     heroImage = img;
   }
 
   const title = destName ? `טיסות ל${shortName(destName)}` : `טיסות ${origin} ← ${destination}`;
-  const monthLabel =
-    departDate.length >= 7
-      ? new Date(`${departDate.slice(0, 7)}-01T00:00:00`).toLocaleDateString(
-          "he-IL",
-          { month: "long", year: "numeric" },
-        )
-      : "";
+
+  // כשאין מחיר שמור לתאריך המדויק — חיפוש חי אצל השותף לאותם תאריכים בדיוק.
+  const partnerUrl = valid
+    ? getTravelProvider().flightSearchUrl({
+        originIata: origin,
+        destinationIata: destination,
+        departDate,
+        returnDate,
+        adults,
+      })
+    : "";
+  const datesLabel = `${departDate}${returnDate ? ` – ${returnDate}` : ""}`;
 
   return (
     <>
@@ -111,26 +117,27 @@ export default async function FlightsPage({
 
         {valid && !failed && results.length === 0 && (
           <div className="rounded-xl border border-border bg-surface p-6 text-center">
-            <p className="font-medium">לא נמצאו טיסות ליעד זה.</p>
-            <p className="mt-1 text-sm text-muted">
-              נסו יעד אחר, או בדקו זמינות ישירות אצל השותף.
-            </p>
-          </div>
-        )}
-
-        {flexible && results.length > 0 && (
-          <div className="mb-4 rounded-xl border border-brand/30 bg-brand/5 p-4 text-sm">
             <p className="font-medium">
-              אין מחיר שמור בדיוק לתאריכים שביקשת — הנה הטיסות הזמינות
-              {monthLabel ? ` ל${shortName(destName) || destination} ב${monthLabel}` : ""}:
+              אין לנו כרגע מחיר שמור לתאריכים האלה.
             </p>
-            <p className="mt-1 text-muted">
-              בחרו טיסה והמשיכו לבדיקת זמינות ומחיר מדויק אצל השותף, או שנו תאריכים בחיפוש.
+            <p className="mx-auto mt-1 max-w-md text-sm text-muted">
+              אפשר לבדוק זמינות ומחיר בזמן אמת אצל השותף — לאותם תאריכים בדיוק
+              ({datesLabel}).
             </p>
+            <a
+              href={partnerUrl}
+              target="_blank"
+              rel="noopener nofollow sponsored"
+              className="mt-4 inline-block h-11 rounded-lg bg-brand px-6 text-sm font-semibold leading-[2.75rem] text-brand-foreground transition-opacity hover:opacity-90"
+            >
+              חיפוש טיסות ל{shortName(destName) || destination} אצל השותף
+            </a>
           </div>
         )}
 
-        {valid && <div className="mb-4"><AffiliateDisclosure /></div>}
+        {valid && results.length > 0 && (
+          <div className="mb-4"><AffiliateDisclosure /></div>
+        )}
 
         {results.length > 0 && (
           <div className="flex flex-col gap-3">

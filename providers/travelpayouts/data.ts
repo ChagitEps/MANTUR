@@ -89,43 +89,6 @@ export async function searchFlights(
   });
 }
 
-/**
- * חיפוש "חכם" עם fallback לחודש. ה-Data API הוא cache דליל — לתאריך בודד
- * מדויק לרוב אין רשומה, אבל לחודש כן. אם התאריך המדויק ריק, נחזיר את
- * הטיסות הזמינות באותו חודש (`flexible: true`) כדי שהמשתמש תמיד יראה אפשרויות.
- */
-export async function searchFlightsSmart(
-  q: FlightSearchQuery,
-): Promise<{ results: FlightResult[]; flexible: boolean }> {
-  const exact = await searchFlights(q);
-  if (exact.length > 0) return { results: exact, flexible: false };
-
-  const month = q.departDate.slice(0, 7); // YYYY-MM
-  // אם התאריך כבר היה חודש (עמוד יעד) — אין fallback נוסף.
-  if (month === q.departDate) return { results: exact, flexible: false };
-
-  const returnMonth = q.returnDate ? q.returnDate.slice(0, 7) : undefined;
-  const limit = q.limit ?? 20;
-
-  // 1) הלוך-חזור לחודש (שומר על מחירי חזור).
-  let r = await searchFlights({
-    ...q,
-    departDate: month,
-    returnDate: returnMonth,
-    limit,
-  });
-  // 2) fallback אחרון: כיוון אחד לחודש.
-  if (r.length === 0 && returnMonth) {
-    r = await searchFlights({
-      ...q,
-      departDate: month,
-      returnDate: undefined,
-      limit,
-    });
-  }
-  return { results: r, flexible: r.length > 0 };
-}
-
 export interface HotelSearchQuery {
   /** שם עיר באנגלית (מה ש-Hotellook מחפש). */
   destination: string;

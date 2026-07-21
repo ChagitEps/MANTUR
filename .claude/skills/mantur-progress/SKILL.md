@@ -31,6 +31,8 @@ description: Current build progress and next steps for the MANTUR project — wh
 
 ## מה כבר נבנה — המשך ✅
 - **עמוד תוצאות מלונות** (`app/hotels/`, `components/HotelResultCard.tsx`, `searchHotels` ב-data.ts) — כמו טיסות: תוצאות בעמוד שלנו + "המשך להזמנה" מתויג. בר החיפוש (מלונות) → `/hotels`.
+- **מדיניות תאריכים: מדויק בלבד (בלי קירוב לחודש).** ה-Data API הוא cache **דליל** — למסלולים פופולריים (LCA/NYC) יש מחיר לתאריך מדויק ומוצג אצלנו; למסלול בלי רשומה (TLV→SKG 10–14.8) **אין קירוב** — מוצג מצב ריק + כפתור "חיפוש טיסות ל<יעד> אצל השותף" עם deep-link מתויג ל**תאריכים המדויקים** (`flightSearchUrl`, פורמט search-code, חיפוש חי אצל Aviasales). חיפוש חי מדויק אצלנו דורש Aviasales Flight Search API (50K MAU). (בעבר היה fallback לחודש — הוסר לבקשת המשתמשת.)
+- **חברת תעופה** (`lib/travel/airlines.ts` + `components/FlightBadges.tsx`): לוגו (pics.avs.io) + שם עברי לפי IATA. `GateBadge` — "דרך <אתר>" עם favicon (ניחוש דומיין משם ה-gate).
 - **שדרוגי חיפוש**: מוצא ברירת מחדל **TLV (תל אביב)** ב-`SearchBar` (עדיין ניתן לשינוי); `SearchBar` מקבל `initialDestination` (לעמודי יעד). `DateRangeField` — **2 חודשים בדסקטופ**, הדגשת התיבה הפעילה, זרימת "יציאה→ממתין לחזרה" (בלי ברירת מחדל).
 - **גילוי נאות אפיליאט** (`components/AffiliateDisclosure.tsx`) — וריאנט `footer` קבוע ב-`app/layout.tsx` (כל עמוד) + `inline` בעמודי טיסות/מלונות/יעד. חובה אתית/רגולטורית (סעיף 8).
 - **עמודי יעד (SEO)** (`app/destinations/[slug]/`, `lib/travel/destinations.ts`) — 3 יעדים (בודפשט/לונדון/רומא), **SSG אינדקסבילי** (title/description עבריים, canonical). כל עמוד: hero תמונת יעד + מדריך (מתי לטוס/מה לעשות) + **טבלת "הטיסות הזולות מתל אביב ל…"** (searchFlights, cache 15 דק') + בר חיפוש מוטמע מכוון ליעד + גילוי נאות. ✔ אומת חי: בודפשט ₪205+.
