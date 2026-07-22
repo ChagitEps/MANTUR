@@ -8,6 +8,7 @@ import type { Scope } from "@/lib/travel/types";
 import { LocationInput, type SelectedPlace } from "@/components/LocationInput";
 import { DateRangeField } from "@/components/DateRangeField";
 import { GuestsField } from "@/components/GuestsField";
+import { trackSearch, trackPartnerClick } from "@/lib/analytics/track";
 
 type Tab = "flights" | "hotels";
 
@@ -62,6 +63,12 @@ export function SearchBar({
         adults: String(adults),
       });
       if (range.to) params.set("return", toISO(range.to));
+      trackSearch("flight", {
+        origin: origin.code,
+        destination: destination.code,
+        depart: toISO(range.from),
+        return: range.to ? toISO(range.to) : "",
+      });
       router.push(`/flights?${params.toString()}`);
       return;
     }
@@ -79,6 +86,12 @@ export function SearchBar({
       adults,
       rooms,
     });
+    trackSearch("hotel", {
+      destination: destination.code,
+      depart: toISO(range.from),
+      return: toISO(range.to),
+    });
+    trackPartnerClick("hotel", { destination: destination.code });
     window.open(url, "_blank", "noopener");
   }
 

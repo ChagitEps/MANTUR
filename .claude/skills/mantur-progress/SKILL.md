@@ -37,6 +37,8 @@ description: Current build progress and next steps for the MANTUR project — wh
 - **גילוי נאות אפיליאט** (`components/AffiliateDisclosure.tsx`) — וריאנט `footer` קבוע ב-`app/layout.tsx` (כל עמוד) + `inline` בעמודי טיסות/מלונות/יעד. חובה אתית/רגולטורית (סעיף 8).
 - **עמודי יעד (SEO)** (`app/destinations/[slug]/`, `lib/travel/destinations.ts`) — 3 יעדים (בודפשט/לונדון/רומא), **SSG אינדקסבילי** (title/description עבריים, canonical). כל עמוד: hero תמונת יעד + מדריך (מתי לטוס/מה לעשות) + **טבלת "הטיסות הזולות מתל אביב ל…"** (searchFlights, cache 15 דק') + בר חיפוש מוטמע מכוון ליעד + גילוי נאות. ✔ אומת חי: בודפשט ₪205+.
 
+- **מדידת תנועה אמיתית** (`@vercel/analytics`): `<Analytics/>` ב-`layout` (צפיות/מבקרים) + אירועי משפך מותאמים דרך `lib/analytics/track.ts` — `search` (ב-`SearchBar`) ו-`partner_click` (`components/PartnerLink.tsx` עוטף את כל קישורי ה-handoff: פרטי טיסה, כרטיס מלון, CTA מצב-ריק). נצפה בלוח **Vercel Analytics**. **דורש הפעלת Web Analytics בפרויקט ב-Vercel + redeploy.** אין נתונים מזויפים. לוח בקרה *בתוך* האתר (סעיף 6.10) = שלב עוקב עם Supabase.
+
 ## מה חסר / חוסם ⏳
 - **אימות נתוני מלונות** — `engine.hotellook.com` **חוסם את ה-IP המקומי** (404), אז לא אומת מקומית. העמוד מרונדר עם error state נקי (פרסינג הגנתי). **לאמת מהדפדפן של המשתמשת (IP לא חסום) או מ-Vercel.**
 - Supabase, Anthropic — לשלבים מאוחרים.

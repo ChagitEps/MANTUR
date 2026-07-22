@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { AirlineBadge, GateBadge } from "@/components/FlightBadges";
+import { PartnerLink } from "@/components/PartnerLink";
 import { searchFlights } from "@/providers/travelpayouts/data";
 import {
   formatDateTime,
@@ -144,14 +145,14 @@ export default async function FlightDetailPage({
                   </div>
                 )}
               </div>
-              <a
+              <PartnerLink
                 href={flight.handoffUrl}
-                target="_blank"
-                rel="noopener nofollow sponsored"
+                kind="flight"
+                destination={flight.destinationAirport}
                 className="h-12 rounded-lg bg-brand px-8 text-center text-sm font-semibold leading-[3rem] text-brand-foreground transition-opacity hover:opacity-90"
               >
                 המשך להזמנה
-              </a>
+              </PartnerLink>
             </div>
 
             <p className="mt-3 text-xs text-muted">

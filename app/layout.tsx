@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
 
 const rubik = Rubik({
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <AffiliateDisclosure variant="footer" />
+        <Analytics />
       </body>
     </html>
   );

@@ -6,6 +6,7 @@ import { searchFlights } from "@/providers/travelpayouts/data";
 import { getTravelProvider } from "@/providers/travelpayouts";
 import { getDestinationImage } from "@/lib/travel/destination-image";
 import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
+import { PartnerLink } from "@/components/PartnerLink";
 import type { FlightResult } from "@/lib/travel/types";
 
 export const metadata: Metadata = {
@@ -124,14 +125,14 @@ export default async function FlightsPage({
               אפשר לבדוק זמינות ומחיר בזמן אמת אצל השותף — לאותם תאריכים בדיוק
               ({datesLabel}).
             </p>
-            <a
+            <PartnerLink
               href={partnerUrl}
-              target="_blank"
-              rel="noopener nofollow sponsored"
+              kind="flight"
+              destination={destination}
               className="mt-4 inline-block h-11 rounded-lg bg-brand px-6 text-sm font-semibold leading-[2.75rem] text-brand-foreground transition-opacity hover:opacity-90"
             >
               חיפוש טיסות ל{shortName(destName) || destination} אצל השותף
-            </a>
+            </PartnerLink>
           </div>
         )}
 

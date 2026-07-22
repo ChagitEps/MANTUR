@@ -1,4 +1,5 @@
 import type { HotelResult } from "@/lib/travel/types";
+import { PartnerLink } from "@/components/PartnerLink";
 
 function stars(n: number): string {
   const c = Math.min(5, Math.max(0, Math.round(n)));
@@ -25,14 +26,14 @@ export function HotelResultCard({ hotel }: { hotel: HotelResult }) {
             ₪{hotel.priceFrom.toLocaleString("he-IL")}
           </div>
         </div>
-        <a
+        <PartnerLink
           href={hotel.handoffUrl}
-          target="_blank"
-          rel="noopener nofollow sponsored"
+          kind="hotel"
+          destination={hotel.location}
           className="h-10 rounded-lg bg-brand px-6 text-sm font-semibold leading-10 text-brand-foreground transition-opacity hover:opacity-90"
         >
           המשך להזמנה
-        </a>
+        </PartnerLink>
       </div>
     </article>
   );
