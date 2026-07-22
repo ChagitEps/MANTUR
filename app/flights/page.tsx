@@ -82,6 +82,7 @@ export default async function FlightsPage({
               alt={shortName(destName)}
               fill
               priority
+              unoptimized
               sizes="(max-width: 768px) 100vw, 768px"
               className="object-cover"
             />

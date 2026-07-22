@@ -25,10 +25,28 @@ export async function generateMetadata({
   const { slug } = await params;
   const dest = getDestination(slug);
   if (!dest) return { title: "יעד לא נמצא — MANTUR" };
+  const title = `חופשה ב${dest.he} — טיסות זולות ומדריך | MANTUR`;
+  const description = `${dest.intro} מתי לטוס, מה לעשות, וכמה עולות טיסות מתל אביב ל${dest.he}.`;
+  const image = await getDestinationImage(dest.he);
+  const url = `/destinations/${dest.slug}`;
   return {
-    title: `חופשה ב${dest.he} — טיסות זולות ומדריך | MANTUR`,
-    description: `${dest.intro} מתי לטוס, מה לעשות, וכמה עולות טיסות מתל אביב ל${dest.he}.`,
-    alternates: { canonical: `/destinations/${dest.slug}` },
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      locale: "he_IL",
+      title,
+      description,
+      url,
+      images: image ? [{ url: image, alt: dest.he }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: image ? [image] : undefined,
+    },
   };
 }
 
@@ -89,6 +107,7 @@ export default async function DestinationPage({
               alt={dest.he}
               fill
               priority
+              unoptimized
               sizes="(max-width: 768px) 100vw, 768px"
               className="object-cover"
             />
