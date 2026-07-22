@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Header } from "@/components/Header";
-import { FlightResultCard } from "@/components/FlightResultCard";
+import { FlightResults } from "@/components/FlightResults";
 import { searchFlights } from "@/providers/travelpayouts/data";
 import { getTravelProvider } from "@/providers/travelpayouts";
 import { getDestinationImage } from "@/lib/travel/destination-image";
@@ -142,25 +142,16 @@ export default async function FlightsPage({
         )}
 
         {results.length > 0 && (
-          <div className="flex flex-col gap-3">
-            {results.map((f, i) => {
-              const dp = new URLSearchParams({
-                origin,
-                destination,
-                depart: departDate,
-                fid: f.id,
-              });
-              if (destName) dp.set("destName", destName);
-              if (returnDate) dp.set("return", returnDate);
-              return (
-                <FlightResultCard
-                  key={`${f.id}-${i}`}
-                  flight={f}
-                  detailHref={`/flights/detail?${dp.toString()}`}
-                />
-              );
-            })}
-          </div>
+          <FlightResults
+            results={results}
+            hrefParams={{
+              origin,
+              destination,
+              depart: departDate,
+              return: returnDate,
+              destName: destName || undefined,
+            }}
+          />
         )}
       </main>
     </>
