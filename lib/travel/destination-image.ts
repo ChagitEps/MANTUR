@@ -25,7 +25,11 @@ export async function getDestinationImage(
   try {
     const res = await fetch(
       `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(clean)}`,
-      { next: { revalidate: 86400 }, headers: { "User-Agent": "MANTUR/1.0" } },
+      {
+        next: { revalidate: 86400 },
+        headers: { "User-Agent": "MANTUR/1.0" },
+        signal: AbortSignal.timeout(5000), // לא לתקוע רינדור על upstream איטי
+      },
     );
     if (!res.ok) return null;
     const json = (await res.json()) as WikiSummary;

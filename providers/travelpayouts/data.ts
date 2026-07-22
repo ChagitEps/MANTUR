@@ -59,6 +59,7 @@ export async function searchFlights(
     {
       headers: { "X-Access-Token": TOKEN },
       next: { revalidate: 900 },
+      signal: AbortSignal.timeout(8000), // לא לתקוע רינדור על upstream איטי
     },
   );
   if (!res.ok) throw new Error(`travelpayouts flights ${res.status}`);

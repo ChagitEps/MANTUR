@@ -20,7 +20,7 @@ async function cheapestPrice(code: string, month: string): Promise<number | null
       destination: code,
       departDate: month,
       returnDate: month,
-      limit: 30,
+      limit: 10,
     });
     const prices = rows
       .filter((r) => r.returnAt && r.price > 0)
