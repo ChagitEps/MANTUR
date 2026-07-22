@@ -5,10 +5,12 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { SearchBar } from "@/components/SearchBar";
 import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
+import { JsonLd } from "@/components/JsonLd";
 import { DESTINATIONS, getDestination } from "@/lib/travel/destinations";
 import { getDestinationImage } from "@/lib/travel/destination-image";
 import { searchFlights } from "@/providers/travelpayouts/data";
 import { formatPrice } from "@/lib/travel/format";
+import { SITE } from "@/lib/site";
 import type { FlightResult } from "@/lib/travel/types";
 
 type Params = Promise<{ slug: string }>;
@@ -95,8 +97,69 @@ export default async function DestinationPage({
     .sort((a, b) => a.price - b.price)
     .slice(0, 6);
 
+  const pageUrl = `${SITE.url}/destinations/${dest.slug}`;
+  const cheapest = cheap[0]?.price;
+
+  // --- JSON-LD (schema.org) — נתונים אמיתיים מהתוכן המוצג בלבד ---
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "בית", item: SITE.url },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "יעדים",
+        item: `${SITE.url}/#destinations`,
+      },
+      { "@type": "ListItem", position: 3, name: dest.he, item: pageUrl },
+    ],
+  };
+
+  const faq = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: `מתי הכי כדאי לטוס ל${dest.he}?`,
+        acceptedAnswer: { "@type": "Answer", text: dest.whenToFly },
+      },
+      {
+        "@type": "Question",
+        name: `מה עושים ב${dest.he}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `בין האטרקציות המרכזיות: ${dest.whatToDo.join(", ")}.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: `כמה עולה טיסה מתל אביב ל${dest.he}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: cheapest
+            ? `מחירי הלוך-חזור מתחילים בסביבות ${formatPrice(cheapest, "ils")} (אינדיקטיבי, משתנה לפי תאריך). ראו טבלת הטיסות הזולות בעמוד.`
+            : "המחירים משתנים לפי תאריך ועונה. ראו טבלת הטיסות הזולות בעמוד היעד.",
+        },
+      },
+    ],
+  };
+
+  const place = {
+    "@context": "https://schema.org",
+    "@type": "TouristDestination",
+    name: dest.he,
+    description: dest.intro,
+    url: pageUrl,
+    ...(heroImage ? { image: heroImage } : {}),
+  };
+
   return (
     <>
+      <JsonLd data={breadcrumb} />
+      <JsonLd data={faq} />
+      <JsonLd data={place} />
       <Header />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
         {/* Hero */}

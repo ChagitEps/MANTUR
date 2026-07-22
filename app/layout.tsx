@@ -3,6 +3,7 @@ import { Rubik } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { Footer } from "@/components/Footer";
+import { JsonLd } from "@/components/JsonLd";
 import { SITE } from "@/lib/site";
 
 const rubik = Rubik({
@@ -43,6 +44,25 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl" className={`${rubik.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                name: SITE.name,
+                url: SITE.url,
+                description: DESCRIPTION,
+              },
+              {
+                "@type": "WebSite",
+                name: SITE.name,
+                url: SITE.url,
+                inLanguage: "he-IL",
+              },
+            ],
+          }}
+        />
         {children}
         <Footer />
         <Analytics />
