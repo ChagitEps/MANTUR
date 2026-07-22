@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
+import { Footer } from "@/components/Footer";
 
 const rubik = Rubik({
   variable: "--font-rubik",
@@ -24,7 +24,7 @@ export default function RootLayout({
     <html lang="he" dir="rtl" className={`${rubik.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         {children}
-        <AffiliateDisclosure variant="footer" />
+        <Footer />
         <Analytics />
       </body>
     </html>
