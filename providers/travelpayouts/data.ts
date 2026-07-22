@@ -1,6 +1,7 @@
 import "server-only";
 import type { FlightResult, HotelResult } from "@/lib/travel/types";
 import { travelpayouts } from "@/providers/travelpayouts";
+import { flightTouchesShabbat } from "@/lib/travel/shabbat";
 
 // טוקן ה-Data API — סודי, צד שרת בלבד. לעולם לא NEXT_PUBLIC.
 const TOKEN = process.env.TRAVELPAYOUTS_API_TOKEN ?? "";
@@ -65,7 +66,7 @@ export async function searchFlights(
   const json = (await res.json()) as { data?: RawFlight[] };
   const rows = json.data ?? [];
 
-  return rows.map((r, i) => {
+  const mapped = rows.map((r, i) => {
     const base = r.link ? `https://www.aviasales.com${r.link}` : "";
     const handoffUrl = base
       ? `${base}${base.includes("?") ? "&" : "?"}marker=${MARKER}&currency=${currency}`
@@ -87,6 +88,9 @@ export async function searchFlights(
       returnDurationMinutes: r.return_at ? (r.duration_back ?? 0) : undefined,
     } satisfies FlightResult;
   });
+
+  // מדיניות שומר שבת (תמיד פעיל): לא מציגים טיסות שממריאות/נוחתות בשבת.
+  return mapped.filter((f) => !flightTouchesShabbat(f));
 }
 
 export interface HotelSearchQuery {

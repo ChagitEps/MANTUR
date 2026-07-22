@@ -98,9 +98,15 @@ export default async function FlightsPage({
         )}
 
         {valid && (
-          <p className="mb-6 text-sm text-muted">
+          <p className="mb-2 text-sm text-muted">
             {origin} ← {destination} · {departDate}
             {returnDate ? ` – ${returnDate}` : ""} · מחירים אינדיקטיביים
+          </p>
+        )}
+
+        {valid && (
+          <p className="mb-6 text-xs text-muted">
+            🕯️ שומר שבת: לא מוצגות טיסות שממריאות או נוחתות בשבת.
           </p>
         )}
 
