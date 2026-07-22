@@ -53,22 +53,24 @@ export default async function DestinationPage({
   const dest = getDestination(slug);
   if (!dest) notFound();
 
+  const month = nextMonth();
   const [heroImage, cheapRaw] = await Promise.all([
     getDestinationImage(dest.he),
     searchFlights({
       origin: "TLV",
       destination: dest.code,
-      departDate: nextMonth(),
-      limit: 6,
+      departDate: month,
+      returnDate: month, // הלוך-חזור בתוך החודש
+      limit: 12,
     }).catch(() => [] as FlightResult[]),
   ]);
 
-  // ייחוד לפי תאריך יציאה, ממוין לפי מחיר (הזול ביותר לכל יום).
+  // רק הלוך-חזור, ייחוד לפי תאריך יציאה, ממוין לפי מחיר (הזול ביותר לכל יום).
   const seen = new Set<string>();
   const cheap = cheapRaw
     .filter((f) => {
       const day = isoDate(f.departureAt);
-      if (!day || seen.has(day)) return false;
+      if (!f.returnAt || !day || seen.has(day)) return false;
       seen.add(day);
       return true;
     })
@@ -114,14 +116,15 @@ export default async function DestinationPage({
         {/* טבלת טיסות זולות */}
         <section className="mt-8">
           <h2 className="mb-3 text-lg font-semibold">
-            הטיסות הזולות מתל אביב ל{dest.he}
+            הטיסות הזולות מתל אביב ל{dest.he} (הלוך-חזור)
           </h2>
           {cheap.length > 0 ? (
             <div className="overflow-x-auto rounded-xl border border-border">
               <table className="w-full text-start text-sm">
                 <thead className="bg-black/[0.03] text-muted">
                   <tr>
-                    <th className="px-4 py-2 text-start font-medium">תאריך יציאה</th>
+                    <th className="px-4 py-2 text-start font-medium">יציאה</th>
+                    <th className="px-4 py-2 text-start font-medium">חזרה</th>
                     <th className="px-4 py-2 text-start font-medium">מחיר מ־</th>
                     <th className="px-4 py-2 text-start font-medium"></th>
                   </tr>
@@ -129,17 +132,22 @@ export default async function DestinationPage({
                 <tbody>
                   {cheap.map((f) => {
                     const day = isoDate(f.departureAt);
-                    const href = `/flights?origin=TLV&destination=${dest.code}&destName=${encodeURIComponent(
-                      dest.he,
-                    )}&depart=${day}`;
+                    const ret = f.returnAt ? isoDate(f.returnAt) : "";
+                    const href =
+                      `/flights?origin=TLV&destination=${dest.code}` +
+                      `&destName=${encodeURIComponent(dest.he)}&depart=${day}` +
+                      (ret ? `&return=${ret}` : "");
+                    const fmtDay = (iso: string) =>
+                      new Date(iso).toLocaleDateString("he-IL", {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                      });
                     return (
                       <tr key={f.id} className="border-t border-border">
+                        <td className="px-4 py-3">{fmtDay(f.departureAt)}</td>
                         <td className="px-4 py-3">
-                          {new Date(f.departureAt).toLocaleDateString("he-IL", {
-                            weekday: "short",
-                            day: "numeric",
-                            month: "short",
-                          })}
+                          {f.returnAt ? fmtDay(f.returnAt) : "—"}
                         </td>
                         <td className="px-4 py-3 font-semibold">
                           {formatPrice(f.price, f.currency)}
