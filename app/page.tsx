@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import { SearchBar } from "@/components/SearchBar";
+import { PopularDestinations } from "@/components/PopularDestinations";
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
           </div>
           <SearchBar />
         </section>
+        <PopularDestinations />
       </main>
     </>
   );
