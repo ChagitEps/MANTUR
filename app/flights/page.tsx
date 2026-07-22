@@ -36,6 +36,7 @@ export default async function FlightsPage({
   const departDate = one(sp.depart);
   const returnDate = one(sp.return) || undefined;
   const adults = Number(one(sp.adults)) || 1;
+  const children = Number(one(sp.children)) || 0;
 
   const valid = Boolean(origin && destination && departDate);
 
@@ -67,6 +68,7 @@ export default async function FlightsPage({
         departDate,
         returnDate,
         adults,
+        children,
       })
     : "";
   const datesLabel = `${departDate}${returnDate ? ` – ${returnDate}` : ""}`;

@@ -10,6 +10,8 @@ export interface FlightSearchParams {
   /** תאריך חזרה, YYYY-MM-DD. חסר = כיוון אחד. */
   returnDate?: string;
   adults: number;
+  /** ילדים (גילאי 2–11). */
+  children?: number;
 }
 
 export interface HotelSearchParams {
@@ -21,6 +23,8 @@ export interface HotelSearchParams {
   checkOut: string;
   adults: number;
   rooms: number;
+  /** ילדים (גילאי 2–17). */
+  children?: number;
 }
 
 /** תוצאת טיסה בודדת (מ-Travelpayouts Data API), מוכנה להצגה. */

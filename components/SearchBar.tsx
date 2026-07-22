@@ -35,6 +35,7 @@ export function SearchBar({
   );
   const [range, setRange] = useState<DateRange | undefined>();
   const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
   const [rooms, setRooms] = useState(1);
 
   // במצב "בארץ" אין טיסות — כופה מלונות ומסתיר את "טיסות".
@@ -62,6 +63,7 @@ export function SearchBar({
         depart: toISO(range.from),
         adults: String(adults),
       });
+      if (children > 0) params.set("children", String(children));
       if (range.to) params.set("return", toISO(range.to));
       trackSearch("flight", {
         origin: origin.code,
@@ -85,6 +87,7 @@ export function SearchBar({
       checkOut: toISO(range.to),
       adults,
       rooms,
+      children,
     });
     trackSearch("hotel", {
       destination: destination.code,
@@ -193,7 +196,11 @@ export function SearchBar({
               </div>
               <GuestsField
                 adults={adults}
-                onChange={({ adults }) => setAdults(adults)}
+                children={children}
+                onChange={({ adults, children }) => {
+                  setAdults(adults);
+                  setChildren(children);
+                }}
               />
             </div>
           </>
@@ -209,10 +216,12 @@ export function SearchBar({
               />
               <GuestsField
                 adults={adults}
+                children={children}
                 rooms={rooms}
                 withRooms
-                onChange={({ adults, rooms }) => {
+                onChange={({ adults, children, rooms }) => {
                   setAdults(adults);
+                  setChildren(children);
                   setRooms(rooms);
                 }}
               />

@@ -27,15 +27,19 @@ export const travelpayouts: TravelProvider = {
     departDate,
     returnDate,
     adults,
+    children = 0,
   }: FlightSearchParams): string {
     // פורמט search-code של Aviasales: ORIGIN + DDMM(יציאה) + DEST + [DDMM(חזרה)] + נוסעים.
-    const pax = Math.min(Math.max(Math.trunc(adults) || 1, 1), 9);
+    // נוסעים: ספרת מבוגרים, ואם יש ילדים גם ספרת ילדים (מבוגרים, ילדים, תינוקות).
+    const ad = Math.min(Math.max(Math.trunc(adults) || 1, 1), 9);
+    const ch = Math.min(Math.max(Math.trunc(children) || 0, 0), 9);
+    const pax = ch > 0 ? `${ad}${ch}` : String(ad);
     const code =
       originIata.toUpperCase() +
       ddmm(departDate) +
       destinationIata.toUpperCase() +
       (returnDate ? ddmm(returnDate) : "") +
-      String(pax);
+      pax;
     const q = new URLSearchParams({ marker: MARKER, currency: "ils" });
     return `https://www.aviasales.com/search/${code}?${q.toString()}`;
   },
@@ -46,6 +50,7 @@ export const travelpayouts: TravelProvider = {
     checkOut,
     adults,
     rooms,
+    children = 0,
   }: HotelSearchParams): string {
     const q = new URLSearchParams({
       destination,
@@ -57,6 +62,7 @@ export const travelpayouts: TravelProvider = {
       language: "he",
       marker: MARKER,
     });
+    if (children > 0) q.set("children", String(children));
     return `https://search.hotellook.com/?${q.toString()}`;
   },
 };

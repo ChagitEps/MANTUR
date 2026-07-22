@@ -48,22 +48,26 @@ function Stepper({
 
 export function GuestsField({
   adults,
+  children = 0,
   rooms = 1,
   withRooms = false,
   onChange,
 }: {
   adults: number;
+  children?: number;
   rooms?: number;
   withRooms?: boolean;
-  onChange: (v: { adults: number; rooms: number }) => void;
+  onChange: (v: { adults: number; children: number; rooms: number }) => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useClickOutside(ref, () => setOpen(false));
 
+  const guestsLabel = withRooms ? "מבוגרים" : "מבוגרים";
+  const childrenPart = children > 0 ? ` · ${children} ילדים` : "";
   const summary = withRooms
-    ? `${rooms} חדרים · ${adults} אורחים`
-    : `${adults} נוסעים`;
+    ? `${rooms} חדרים · ${adults} ${guestsLabel}${childrenPart}`
+    : `${adults} מבוגרים${childrenPart}`;
 
   return (
     <div ref={ref} className="relative flex flex-col gap-1 text-start">
@@ -73,7 +77,7 @@ export function GuestsField({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="h-11 w-full rounded-lg border border-border bg-surface px-3 text-start text-sm"
+        className="h-11 w-full truncate rounded-lg border border-border bg-surface px-3 text-start text-sm"
       >
         {summary}
       </button>
@@ -83,13 +87,20 @@ export function GuestsField({
             <Stepper
               label="חדרים"
               value={rooms}
-              onChange={(v) => onChange({ adults, rooms: v })}
+              onChange={(v) => onChange({ adults, children, rooms: v })}
             />
           )}
           <Stepper
-            label={withRooms ? "מבוגרים" : "נוסעים"}
+            label="מבוגרים"
             value={adults}
-            onChange={(v) => onChange({ adults: v, rooms })}
+            onChange={(v) => onChange({ adults: v, children, rooms })}
+          />
+          <Stepper
+            label="ילדים"
+            value={children}
+            min={0}
+            max={8}
+            onChange={(v) => onChange({ adults, children: v, rooms })}
           />
         </div>
       )}
