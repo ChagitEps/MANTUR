@@ -153,13 +153,6 @@ export default async function FlightsPage({
           <FlightResults
             key={`${origin}-${destination}-${departDate}-${returnDate ?? ""}`}
             results={results}
-            hrefParams={{
-              origin,
-              destination,
-              depart: departDate,
-              return: returnDate,
-              destName: destName || undefined,
-            }}
           />
         )}
       </main>

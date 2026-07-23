@@ -48,3 +48,8 @@ export const FALLBACK_GEO: AirportGeo = AIRPORTS.TLV;
 export function getAirportGeo(iata: string): AirportGeo {
   return AIRPORTS[iata?.toUpperCase()] ?? FALLBACK_GEO;
 }
+
+/** אזור-זמן של שדה מוכר בלבד (undefined = לא ידוע → לא מציגים שעת נחיתה). */
+export function getAirportTz(iata: string): string | undefined {
+  return AIRPORTS[iata?.toUpperCase()]?.tz;
+}

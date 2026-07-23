@@ -21,9 +21,8 @@ description: Current build progress and next steps for the MANTUR project — wh
   - `providers/travelpayouts/index.ts` — deep-links מתויגים (Aviasales search-code / Hotellook).
   - `providers/travelpayouts/data.ts` — **server-only** (`import "server-only"`): `searchFlights()` מול Aviasales Data API (`api.travelpayouts.com/aviasales/v3/prices_for_dates`), אימות ב-header `X-Access-Token`, cache 15 דק'.
   - `lib/travel/types.ts` — טיפוסי חיפוש + `FlightResult`.
-- **עמוד תוצאות טיסות** (`app/flights/`): Server Component שמושך נתונים אמיתיים ומציג בעמוד שלנו — כרטיסי טיסה (`components/FlightResultCard.tsx`) עם מחיר/חברה/מסלול, כפתור **"המשך להזמנה"** → handoff מתויג. מצבי loading/empty/error. ✔ אומת חי: ₪418, marker=742034 בהפניה.
-  - **עמוד פרטי טיסה** (`app/flights/detail/`) — מסלול הלוך/חזור, שעות, חברה, עצירות, משך, מחיר (re-fetch מה-cache לפי `fid`). כפתור "המשך להזמנה" → Aviasales מתויג. פונקציות פורמט משותפות ב-`lib/travel/format.ts`.
-  - **זרימה:** חיפוש → `/flights` → "צפייה בפרטים" → `/flights/detail` (הכל אצלנו) → "המשך להזמנה" → השותף לקנייה.
+- **עמוד תוצאות טיסות** (`app/flights/`): Server Component שמושך נתונים אמיתיים ומציג בעמוד שלנו — כרטיסי טיסה (`components/FlightResultCard.tsx`) עם **לוח זמנים מלא הלוך+חזור** (`components/FlightItinerary.tsx`: שעות המראה/נחיתה, עצירות לכל רגל, משך), מחיר, חברה, מקור הזמנה; כפתור **"המשך להזמנה"** (`components/PartnerLink.tsx`) → handoff מתויג **ישירות לשותף**. סינון (מחיר/עצירות/שעת יציאה/שעת חזרה/חברה) ומיון ב-`components/FlightResults.tsx`. מצבי loading/empty/error. ✔ אומת חי: marker=742034 בהפניה.
+  - **זרימה:** חיפוש → `/flights` (כל הפרטים בעמוד אחד) → "המשך להזמנה" → השותף לקנייה. (עמוד `/flights/detail` בוטל — הפרטים המלאים מוצגים כבר בכרטיס.)
   - **תמונת יעד** בראש עמוד הטיסות (hero): `lib/travel/destination-image.ts` מושך תמונה מ-Wikipedia REST (חינם, בלי מפתח) — עברית→he.wikipedia, אחרת en; cache ליום. `next.config.ts` מתיר `upload.wikimedia.org`. `SearchBar` מעביר `destName`; העמוד מרנדר `<Image fill>` עם כותרת "טיסות ל<יעד>". ✔ אומת: לונדון (he) + Paris (en), optimizer מחזיר 200.
   - הערה: השוואת מוכרים מלאה בעמוד שלנו דורשת את Aviasales Flight Search API (נפתח רק ב-50K MAU) — עתידי, לא חסם עסקי.
 - **Travelpayouts**: Project + **marker 742034** + **API token** — ב-`.env.local` (מוחרג מ-git). marker גם ב-`NEXT_PUBLIC_TRAVELPAYOUTS_MARKER`.

@@ -10,6 +10,11 @@ type StopBucket = "0" | "1" | "2+";
 type TimeBucket = "night" | "morning" | "noon" | "evening";
 type SortKey = "price" | "duration" | "departure";
 
+/** מספר העצירות המחמיר מבין הלוך וחזור — "ישירה" רק אם שתי הרגליים ישירות. */
+function flightStops(f: FlightResult): number {
+  return Math.max(f.transfers, f.returnTransfers ?? 0);
+}
+
 function stopBucket(transfers: number): StopBucket {
   if (transfers <= 0) return "0";
   if (transfers === 1) return "1";
@@ -22,8 +27,14 @@ const STOP_LABELS: Record<StopBucket, string> = {
   "2+": "2 עצירות ומעלה",
 };
 
+/** שעה מקומית מתוך מחרוזת ISO (השעון של שדה התעופה, לא של הדפדפן). */
+function localHour(iso: string): number {
+  const m = iso.match(/T(\d{2}):/);
+  return m ? Number(m[1]) : new Date(iso).getHours();
+}
+
 function timeBucket(iso: string): TimeBucket {
-  const h = new Date(iso).getHours();
+  const h = localHour(iso);
   if (h < 6) return "night";
   if (h < 12) return "morning";
   if (h < 18) return "noon";
@@ -44,22 +55,8 @@ const SORTS: [SortKey, string][] = [
   ["departure", "הכי מוקדם"],
 ];
 
-interface HrefParams {
-  origin: string;
-  destination: string;
-  depart: string;
-  return?: string;
-  destName?: string;
-}
-
 /** תוצאות טיסות עם סינון (מחיר/עצירות/שעה/חברה) ומיון. הכל בצד לקוח. */
-export function FlightResults({
-  results,
-  hrefParams,
-}: {
-  results: FlightResult[];
-  hrefParams: HrefParams;
-}) {
+export function FlightResults({ results }: { results: FlightResult[] }) {
   const priceBounds = useMemo(() => {
     const prices = results.map((f) => f.price).filter((p) => p > 0);
     return {
@@ -72,6 +69,7 @@ export function FlightResults({
   const [airlineSel, setAirlineSel] = useState<Set<string>>(new Set());
   const [stopSel, setStopSel] = useState<Set<StopBucket>>(new Set());
   const [timeSel, setTimeSel] = useState<Set<TimeBucket>>(new Set());
+  const [returnTimeSel, setReturnTimeSel] = useState<Set<TimeBucket>>(new Set());
   const [sort, setSort] = useState<SortKey>("price");
 
   const airlines = useMemo(() => {
@@ -85,7 +83,7 @@ export function FlightResults({
 
   const stopBuckets = useMemo(() => {
     const s = new Set<StopBucket>();
-    for (const f of results) s.add(stopBucket(f.transfers));
+    for (const f of results) s.add(stopBucket(flightStops(f)));
     return (["0", "1", "2+"] as StopBucket[]).filter((b) => s.has(b));
   }, [results]);
 
@@ -95,14 +93,25 @@ export function FlightResults({
     return TIME_ORDER.filter((b) => s.has(b));
   }, [results]);
 
+  const returnTimeBuckets = useMemo(() => {
+    const s = new Set<TimeBucket>();
+    for (const f of results) if (f.returnAt) s.add(timeBucket(f.returnAt));
+    return TIME_ORDER.filter((b) => s.has(b));
+  }, [results]);
+
   const visible = useMemo(() => {
     const filtered = results.filter((f) => {
       if (f.price > 0 && f.price > maxPrice) return false;
       if (airlineSel.size > 0 && !airlineSel.has(f.airline)) return false;
-      if (stopSel.size > 0 && !stopSel.has(stopBucket(f.transfers))) return false;
+      if (stopSel.size > 0 && !stopSel.has(stopBucket(flightStops(f)))) return false;
       if (
         timeSel.size > 0 &&
         (!f.departureAt || !timeSel.has(timeBucket(f.departureAt)))
+      )
+        return false;
+      if (
+        returnTimeSel.size > 0 &&
+        (!f.returnAt || !returnTimeSel.has(timeBucket(f.returnAt)))
       )
         return false;
       return true;
@@ -121,7 +130,7 @@ export function FlightResults({
       );
     });
     return sorted;
-  }, [results, maxPrice, airlineSel, stopSel, timeSel, sort]);
+  }, [results, maxPrice, airlineSel, stopSel, timeSel, returnTimeSel, sort]);
 
   function toggle<T>(setter: React.Dispatch<React.SetStateAction<Set<T>>>, val: T) {
     setter((prev) => {
@@ -135,26 +144,16 @@ export function FlightResults({
     setAirlineSel(new Set());
     setStopSel(new Set());
     setTimeSel(new Set());
+    setReturnTimeSel(new Set());
   }
 
   const hasFilters =
     maxPrice < priceBounds.max ||
     airlineSel.size > 0 ||
     stopSel.size > 0 ||
-    timeSel.size > 0;
+    timeSel.size > 0 ||
+    returnTimeSel.size > 0;
   const showPrice = priceBounds.max > priceBounds.min;
-
-  function buildHref(f: FlightResult): string {
-    const dp = new URLSearchParams({
-      origin: hrefParams.origin,
-      destination: hrefParams.destination,
-      depart: hrefParams.depart,
-      fid: f.id,
-    });
-    if (hrefParams.destName) dp.set("destName", hrefParams.destName);
-    if (hrefParams.return) dp.set("return", hrefParams.return);
-    return `/flights/detail?${dp.toString()}`;
-  }
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -218,7 +217,7 @@ export function FlightResults({
           {timeBuckets.length > 1 && (
             <fieldset className="mb-4">
               <legend className="mb-2 text-xs font-medium text-muted">
-                שעת יציאה
+                שעת יציאה (הלוך)
               </legend>
               <div className="flex flex-col gap-1.5">
                 {timeBuckets.map((b) => (
@@ -227,6 +226,27 @@ export function FlightResults({
                       type="checkbox"
                       checked={timeSel.has(b)}
                       onChange={() => toggle(setTimeSel, b)}
+                      className="accent-brand"
+                    />
+                    {TIME_LABELS[b]}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+
+          {returnTimeBuckets.length > 1 && (
+            <fieldset className="mb-4">
+              <legend className="mb-2 text-xs font-medium text-muted">
+                שעת חזרה
+              </legend>
+              <div className="flex flex-col gap-1.5">
+                {returnTimeBuckets.map((b) => (
+                  <label key={b} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={returnTimeSel.has(b)}
+                      onChange={() => toggle(setReturnTimeSel, b)}
                       className="accent-brand"
                     />
                     {TIME_LABELS[b]}
@@ -295,11 +315,7 @@ export function FlightResults({
         {visible.length > 0 ? (
           <div className="flex flex-col gap-3">
             {visible.map((f, i) => (
-              <FlightResultCard
-                key={`${f.id}-${i}`}
-                flight={f}
-                detailHref={buildHref(f)}
-              />
+              <FlightResultCard key={`${f.id}-${i}`} flight={f} />
             ))}
           </div>
         ) : (
