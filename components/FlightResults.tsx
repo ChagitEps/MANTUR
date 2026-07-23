@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { FlightResultCard } from "@/components/FlightResultCard";
-import { airlineName } from "@/lib/travel/airlines";
+import { AirlineBadge } from "@/components/FlightBadges";
 import { formatPrice } from "@/lib/travel/format";
 import type { FlightResult } from "@/lib/travel/types";
 
@@ -250,7 +250,9 @@ export function FlightResults({
                       onChange={() => toggle(setAirlineSel, code)}
                       className="accent-brand"
                     />
-                    <span className="flex-1 truncate">{airlineName(code)}</span>
+                    <span className="flex-1 truncate">
+                      <AirlineBadge code={code} />
+                    </span>
                     <span className="text-xs text-muted">{count}</span>
                   </label>
                 ))}
