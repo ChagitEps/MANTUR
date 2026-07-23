@@ -5,6 +5,7 @@ import { FlightResults } from "@/components/FlightResults";
 import { searchFlights } from "@/providers/travelpayouts/data";
 import { getTravelProvider } from "@/providers/travelpayouts";
 import { getDestinationImage } from "@/lib/travel/destination-image";
+import { getDestinationByCode } from "@/lib/travel/destinations";
 import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
 import { PartnerLink } from "@/components/PartnerLink";
 import type { FlightResult } from "@/lib/travel/types";
@@ -44,6 +45,10 @@ export default async function FlightsPage({
   let failed = false;
   let heroImage: string | null = null;
 
+  // מעדיפים את התמונה המאומתת מ-destinations.ts (אותה תמונה יפה שבדף הבית/עמוד היעד);
+  // רק ליעד שאינו מבין 15 היעדים נופלים חזרה ל-Wikipedia REST.
+  const curated = getDestinationByCode(destination);
+
   if (valid) {
     // תאריך מדויק בלבד — בלי קירוב לחודש (בקשת המשתמשת).
     const [flightsRes, img] = await Promise.all([
@@ -51,14 +56,19 @@ export default async function FlightsPage({
         (r) => ({ ok: true as const, r }),
         () => ({ ok: false as const, r: [] as FlightResult[] }),
       ),
-      destName ? getDestinationImage(destName) : Promise.resolve(null),
+      curated
+        ? Promise.resolve(curated.image)
+        : destName
+          ? getDestinationImage(destName)
+          : Promise.resolve(null),
     ]);
     results = flightsRes.r;
     failed = !flightsRes.ok;
     heroImage = img;
   }
 
-  const title = destName ? `טיסות ל${shortName(destName)}` : `טיסות ${origin} ← ${destination}`;
+  const heTitle = destName || curated?.he || "";
+  const title = heTitle ? `טיסות ל${shortName(heTitle)}` : `טיסות ${origin} ← ${destination}`;
 
   // כשאין מחיר שמור לתאריך המדויק — חיפוש חי אצל השותף לאותם תאריכים בדיוק.
   const partnerUrl = valid
@@ -81,7 +91,7 @@ export default async function FlightsPage({
           <div className="relative mb-4 aspect-[21/9] w-full overflow-hidden rounded-2xl">
             <Image
               src={heroImage}
-              alt={shortName(destName)}
+              alt={shortName(heTitle)}
               fill
               priority
               unoptimized
@@ -140,7 +150,7 @@ export default async function FlightsPage({
               destination={destination}
               className="mt-4 inline-block h-11 rounded-lg bg-brand px-6 text-sm font-semibold leading-[2.75rem] text-brand-foreground transition-opacity hover:opacity-90"
             >
-              חיפוש טיסות ל{shortName(destName) || destination} אצל השותף
+              חיפוש טיסות ל{shortName(heTitle) || destination} אצל השותף
             </PartnerLink>
           </div>
         )}

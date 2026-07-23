@@ -43,11 +43,19 @@ export async function PopularDestinations() {
     })),
   );
 
+  // מהזול ליקר; יעדים ללא מחיר שמור נדחפים לסוף.
+  cards.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
+
+  const monthLabel = new Intl.DateTimeFormat("he-IL", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${month}-01T00:00:00`));
+
   return (
     <section className="mx-auto w-full max-w-5xl px-4 pb-16">
       <h2 className="mb-1 text-center text-2xl font-bold">יעדים פופולריים</h2>
       <p className="mb-6 text-center text-sm text-muted">
-        מחיר הלוך-חזור זול מתל אביב + מדריך קצר
+        מוצגים המחירים הזולים ביותר ל{monthLabel} — הלוך-חזור מתל אביב
       </p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((d) => (

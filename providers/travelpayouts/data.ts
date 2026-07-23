@@ -1,9 +1,5 @@
 import "server-only";
-import type {
-  AnywhereResult,
-  FlightResult,
-  HotelResult,
-} from "@/lib/travel/types";
+import type { FlightResult, HotelResult } from "@/lib/travel/types";
 import { travelpayouts } from "@/providers/travelpayouts";
 import { flightTouchesShabbat } from "@/lib/travel/shabbat";
 
@@ -77,7 +73,7 @@ export async function searchFlights(
   const mapped = rows.map((r, i) => {
     const base = r.link ? `https://www.aviasales.com${r.link}` : "";
     const handoffUrl = base
-      ? `${base}${base.includes("?") ? "&" : "?"}marker=${MARKER}&currency=${currency}`
+      ? `${base}${base.includes("?") ? "&" : "?"}marker=${MARKER}&currency=${currency}&locale=he`
       : "";
     return {
       id: `${r.origin_airport}-${r.destination_airport}-${r.departure_at}-${r.flight_number ?? i}`,
@@ -117,13 +113,14 @@ function isoDate(iso: string): string {
 }
 
 /**
- * חיפוש "לכל מקום" — היעדים הזולים ממוצא נתון, ממוינים מהזול לגבוה.
+ * חיפוש "לכל מקום" — היעד הזול ביותר לכל קוד יעד ממוצא נתון, ממוין מהזול לגבוה.
+ * מחזיר FlightResult[] (כל כרטיס = יעד אחר) כדי שהעמוד יציג רשימת טיסות רגילה.
  * עם תאריך: prices_for_dates עם origin בלבד. בלי תאריך: city-directions.
  * צד שרת בלבד, cache 15 דק'. סינון שבת חל כרגיל.
  */
 export async function searchAnywhere(
   q: AnywhereQuery,
-): Promise<AnywhereResult[]> {
+): Promise<FlightResult[]> {
   const currency = q.currency ?? "ils";
   const origin = q.origin.toUpperCase();
   const limit = q.limit ?? 40;
@@ -163,7 +160,7 @@ export async function searchAnywhere(
   }
 
   // סינון שבת + דדופ ליעד (הזול ביותר לכל קוד יעד).
-  const cheapest = new Map<string, AnywhereResult>();
+  const cheapest = new Map<string, FlightResult>();
   for (const r of rows) {
     // prices_for_dates → *_airport; city-directions → origin/destination.
     const dest = (r.destination_airport ?? r.destination ?? "").toUpperCase();
@@ -183,27 +180,41 @@ export async function searchAnywhere(
     if (shabbat) continue;
 
     const existing = cheapest.get(dest);
-    if (existing && existing.priceFrom <= price) continue;
+    if (existing && existing.price <= price) continue;
+
+    // handoff: אם יש link (prices_for_dates) — deep-link ישיר מתויג; אחרת
+    // (city-directions, בלי תאריך) — search-code מתויג של Aviasales.
+    const base = r.link ? `https://www.aviasales.com${r.link}` : "";
+    const handoffUrl = base
+      ? `${base}${base.includes("?") ? "&" : "?"}marker=${MARKER}&currency=${currency}&locale=he`
+      : travelpayouts.flightSearchUrl({
+          originIata: origin,
+          destinationIata: dest,
+          departDate: isoDate(departureAt),
+          returnDate: r.return_at ? isoDate(r.return_at) : undefined,
+          adults: 1,
+        });
 
     cheapest.set(dest, {
-      destinationCode: dest,
-      priceFrom: price,
+      id: `${originCode}-${dest}-${departureAt}`,
+      price,
       currency,
+      airline: r.airline ?? "",
+      originAirport: originCode,
+      destinationAirport: dest,
       departureAt,
-      returnAt: r.return_at || undefined,
       transfers: r.transfers ?? 0,
-      handoffUrl: travelpayouts.flightSearchUrl({
-        originIata: origin,
-        destinationIata: dest,
-        departDate: isoDate(departureAt),
-        returnDate: r.return_at ? isoDate(r.return_at) : undefined,
-        adults: 1,
-      }),
-    });
+      durationMinutes: r.duration ?? 0,
+      gate: r.gate ?? "",
+      handoffUrl,
+      returnAt: r.return_at || undefined,
+      returnTransfers: r.return_at ? (r.return_transfers ?? 0) : undefined,
+      returnDurationMinutes: r.return_at ? (r.duration_back ?? 0) : undefined,
+    } satisfies FlightResult);
   }
 
   return [...cheapest.values()]
-    .sort((a, b) => a.priceFrom - b.priceFrom)
+    .sort((a, b) => a.price - b.price)
     .slice(0, limit);
 }
 

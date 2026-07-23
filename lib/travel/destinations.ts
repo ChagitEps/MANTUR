@@ -312,3 +312,8 @@ export const DESTINATIONS: Destination[] = [
 export function getDestination(slug: string): Destination | undefined {
   return DESTINATIONS.find((d) => d.slug === slug);
 }
+
+/** יעד לפי קוד IATA (לתמונה המאומתת בעמוד הטיסות). */
+export function getDestinationByCode(code: string): Destination | undefined {
+  return DESTINATIONS.find((d) => d.code === code.toUpperCase());
+}

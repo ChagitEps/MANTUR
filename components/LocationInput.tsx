@@ -77,7 +77,7 @@ export function LocationInput({
   }
 
   function pickAnywhere() {
-    setQuery(`🌍 ${ANYWHERE.name}`);
+    setQuery(ANYWHERE.name);
     onSelect(ANYWHERE);
     setItems([]);
     setOpen(false);
@@ -107,7 +107,6 @@ export function LocationInput({
                 onClick={pickAnywhere}
                 className="flex w-full items-center gap-2 border-b border-border px-3 py-2 text-start text-sm font-medium hover:bg-black/5"
               >
-                <span aria-hidden>🌍</span>
                 <span>כל היעדים — מצאו לי לאן זול לטוס</span>
               </button>
             </li>

@@ -48,21 +48,8 @@ export interface FlightResult {
   returnAt?: string;
   returnTransfers?: number;
   returnDurationMinutes?: number;
-}
-
-/** יעד בודד בתוצאות "לכל מקום" — הזול ביותר לאותו קוד יעד. */
-export interface AnywhereResult {
-  /** קוד IATA של עיר/שדה היעד. */
-  destinationCode: string;
-  /** המחיר הזול שנמצא ליעד. */
-  priceFrom: number;
-  currency: string;
-  /** ISO 8601 — יציאת הטיסה הזולה שנמצאה. */
-  departureAt: string;
-  returnAt?: string;
-  transfers: number;
-  /** deep-link מתויג (marker) לחיפוש אצל השותף. */
-  handoffUrl: string;
+  /** שם עברי ליעד — מוצג ברשימת "לכל מקום" (כל כרטיס יעד אחר). */
+  destinationName?: string;
 }
 
 /** תוצאת מלון בודדת (מ-Hotellook Data API), מוכנה להצגה. */

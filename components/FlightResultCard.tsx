@@ -7,6 +7,13 @@ import { formatPrice } from "@/lib/travel/format";
 export function FlightResultCard({ flight }: { flight: FlightResult }) {
   return (
     <article className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4">
+      {/* ברשימת "לכל מקום" — כל כרטיס הוא יעד אחר, אז מסמנים אותו */}
+      {flight.destinationName && (
+        <div className="text-sm font-semibold text-brand">
+          טיסה ל{flight.destinationName}
+        </div>
+      )}
+
       {/* שורה עליונה: חברה + מקור הזמנה · מחיר */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">

@@ -40,7 +40,11 @@ export const travelpayouts: TravelProvider = {
       destinationIata.toUpperCase() +
       (returnDate ? ddmm(returnDate) : "") +
       pax;
-    const q = new URLSearchParams({ marker: MARKER, currency: "ils" });
+    const q = new URLSearchParams({
+      marker: MARKER,
+      currency: "ils",
+      locale: "he",
+    });
     return `https://www.aviasales.com/search/${code}?${q.toString()}`;
   },
 
