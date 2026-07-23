@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { DESTINATIONS } from "@/lib/travel/destinations";
-import { getDestinationImage } from "@/lib/travel/destination-image";
 import { searchFlights } from "@/providers/travelpayouts/data";
 import { formatPrice } from "@/lib/travel/format";
 
@@ -38,13 +37,10 @@ async function cheapestPrice(code: string, month: string): Promise<number | null
 export async function PopularDestinations() {
   const month = nextMonth();
   const cards = await Promise.all(
-    DESTINATIONS.map(async (d) => {
-      const [image, price] = await Promise.all([
-        getDestinationImage(d.he),
-        cheapestPrice(d.code, month),
-      ]);
-      return { ...d, image, price };
-    }),
+    DESTINATIONS.map(async (d) => ({
+      ...d,
+      price: await cheapestPrice(d.code, month),
+    })),
   );
 
   return (

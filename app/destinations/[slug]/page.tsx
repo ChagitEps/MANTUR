@@ -7,7 +7,6 @@ import { SearchBar } from "@/components/SearchBar";
 import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
 import { JsonLd } from "@/components/JsonLd";
 import { DESTINATIONS, getDestination } from "@/lib/travel/destinations";
-import { getDestinationImage } from "@/lib/travel/destination-image";
 import { searchFlights } from "@/providers/travelpayouts/data";
 import { formatPrice } from "@/lib/travel/format";
 import { SITE } from "@/lib/site";
@@ -29,7 +28,7 @@ export async function generateMetadata({
   if (!dest) return { title: "יעד לא נמצא — MANTUR" };
   const title = `חופשה ב${dest.he} — טיסות זולות ומדריך | MANTUR`;
   const description = `${dest.intro} מתי לטוס, מה לעשות, וכמה עולות טיסות מתל אביב ל${dest.he}.`;
-  const image = await getDestinationImage(dest.he);
+  const image = dest.image;
   const url = `/destinations/${dest.slug}`;
   return {
     title,
@@ -74,16 +73,14 @@ export default async function DestinationPage({
   if (!dest) notFound();
 
   const month = nextMonth();
-  const [heroImage, cheapRaw] = await Promise.all([
-    getDestinationImage(dest.he),
-    searchFlights({
-      origin: "TLV",
-      destination: dest.code,
-      departDate: month,
-      returnDate: month, // הלוך-חזור בתוך החודש
-      limit: 12,
-    }).catch(() => [] as FlightResult[]),
-  ]);
+  const heroImage = dest.image;
+  const cheapRaw = await searchFlights({
+    origin: "TLV",
+    destination: dest.code,
+    departDate: month,
+    returnDate: month, // הלוך-חזור בתוך החודש
+    limit: 12,
+  }).catch(() => [] as FlightResult[]);
 
   // רק הלוך-חזור, ייחוד לפי תאריך יציאה, ממוין לפי מחיר (הזול ביותר לכל יום).
   const seen = new Set<string>();

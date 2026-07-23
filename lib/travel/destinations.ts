@@ -9,8 +9,10 @@ export interface Destination {
   code: string;
   /** שם עברי לתצוגה. */
   he: string;
-  /** שם אנגלי (לתמונת ויקיפדיה fallback / meta). */
+  /** שם אנגלי (למטא / חיפוש). */
   en: string;
+  /** תמונת יעד איכותית קבועה (Wikimedia, מאומתת). */
+  image: string;
   /** תקציר פתיחה. */
   intro: string;
   /** מתי כדאי לטוס. */
@@ -25,6 +27,8 @@ export const DESTINATIONS: Destination[] = [
     code: "BUD",
     he: "בודפשט",
     en: "Budapest",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Hungarian_Parliament_Building_from_across_the_Danube%2C_2025-01-11.jpg/1280px-Hungarian_Parliament_Building_from_across_the_Danube%2C_2025-01-11.jpg",
     intro:
       "בירת הונגריה על גדות הדנובה — עיר זולה, יפהפייה ומלאת חיים, מהיעדים האהובים על ישראלים לחופשת עיר קצרה.",
     whenToFly:
@@ -42,6 +46,8 @@ export const DESTINATIONS: Destination[] = [
     code: "LON",
     he: "לונדון",
     en: "London",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Tower_Bridge_at_Dawn.jpg/1280px-Tower_Bridge_at_Dawn.jpg",
     intro:
       "בירת בריטניה — מטרופולין ענק של תרבות, מוזיאונים, שופינג ותיאטרון. יעד קלאסי שאפשר לחזור אליו שוב ושוב.",
     whenToFly:
@@ -59,6 +65,8 @@ export const DESTINATIONS: Destination[] = [
     code: "ROM",
     he: "רומא",
     en: "Rome",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/1280px-Colosseo_2020.jpg",
     intro:
       "העיר הנצחית — אלפיים שנות היסטוריה בכל פינה, אוכל איטלקי מושלם ואווירה שאין כמותה. חובה לכל חובב תרבות.",
     whenToFly:
@@ -76,6 +84,8 @@ export const DESTINATIONS: Destination[] = [
     code: "LCA",
     he: "לרנקה",
     en: "Larnaca",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Larnaca_01-2017_img27_Finikoudes.jpg/1280px-Larnaca_01-2017_img27_Finikoudes.jpg",
     intro:
       "העיר החופית בקפריסין — כ-40 דקות טיסה מתל אביב. ים, טיילת, מסעדות ואווירה נינוחה. הבריחה המושלמת לסוף שבוע.",
     whenToFly:
@@ -93,6 +103,8 @@ export const DESTINATIONS: Destination[] = [
     code: "ATH",
     he: "אתונה",
     en: "Athens",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg/1280px-1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg",
     intro:
       "עריסת התרבות המערבית — אקרופוליס, היסטוריה עתיקה ואוכל יווני משובח, פחות משעתיים טיסה מתל אביב.",
     whenToFly:
@@ -110,6 +122,8 @@ export const DESTINATIONS: Destination[] = [
     code: "PAR",
     he: "פריז",
     en: "Paris",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/MG-Paris-Champ_de_Mars.jpg/1280px-MG-Paris-Champ_de_Mars.jpg",
     intro:
       "עיר האורות והרומנטיקה — אמנות, אופנה, קפה ואוכל. אחת מבירות התרבות הגדולות בעולם.",
     whenToFly:
@@ -127,6 +141,8 @@ export const DESTINATIONS: Destination[] = [
     code: "BCN",
     he: "ברצלונה",
     en: "Barcelona",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Parc_guell_-_panoramio.jpg/1280px-Parc_guell_-_panoramio.jpg",
     intro:
       "בירת קטלוניה — אדריכלות מסחררת של גאודי, חופים, טאפאס וחיי לילה תוססים על חוף הים.",
     whenToFly:
@@ -144,6 +160,8 @@ export const DESTINATIONS: Destination[] = [
     code: "AMS",
     he: "אמסטרדם",
     en: "Amsterdam",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Prinsengracht.jpg/1280px-Prinsengracht.jpg",
     intro:
       "עיר התעלות — אופניים, מוזיאונים עולמיים ואווירה קסומה. קומפקטית ומושלמת לחופשת עיר.",
     whenToFly:
@@ -161,6 +179,8 @@ export const DESTINATIONS: Destination[] = [
     code: "PRG",
     he: "פראג",
     en: "Prague",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Prague_07-2016_view_from_Lesser_Town_Tower_of_Charles_Bridge_img3.jpg/1280px-Prague_07-2016_view_from_Lesser_Town_Tower_of_Charles_Bridge_img3.jpg",
     intro:
       "פנינה של מרכז אירופה — עיר עתיקה מהאגדות, גשרים, טירה ואווירה קסומה במחירים נוחים.",
     whenToFly:
