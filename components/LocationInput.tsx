@@ -15,18 +15,24 @@ export interface SelectedPlace {
   name: string;
 }
 
+/** יעד-סנטינל ל"לכל מקום" — מפעיל חיפוש Everywhere. */
+export const ANYWHERE: SelectedPlace = { code: "ANYWHERE", name: "כל היעדים" };
+
 export function LocationInput({
   label,
   placeholder,
   value,
   onSelect,
   kind = "flight",
+  allowAnywhere = false,
 }: {
   label: string;
   placeholder?: string;
   value: string;
   onSelect: (place: SelectedPlace | null) => void;
   kind?: "flight" | "hotel";
+  /** מציג אפשרות נעוצה "🌍 כל היעדים" בראש הרשימה (שדה "לאן" בלבד). */
+  allowAnywhere?: boolean;
 }) {
   const [query, setQuery] = useState(value);
   const [items, setItems] = useState<Suggestion[]>([]);
@@ -70,6 +76,13 @@ export function LocationInput({
     setOpen(false);
   }
 
+  function pickAnywhere() {
+    setQuery(`🌍 ${ANYWHERE.name}`);
+    onSelect(ANYWHERE);
+    setItems([]);
+    setOpen(false);
+  }
+
   return (
     <div ref={ref} className="relative flex flex-col gap-1 text-start">
       <span className="text-xs font-medium text-muted">{label}</span>
@@ -85,8 +98,20 @@ export function LocationInput({
         autoComplete="off"
         className="h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm outline-none focus:border-brand"
       />
-      {open && items.length > 0 && (
+      {open && (items.length > 0 || allowAnywhere) && (
         <ul className="absolute top-full z-50 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-border bg-surface py-1 shadow-xl">
+          {allowAnywhere && (
+            <li>
+              <button
+                type="button"
+                onClick={pickAnywhere}
+                className="flex w-full items-center gap-2 border-b border-border px-3 py-2 text-start text-sm font-medium hover:bg-black/5"
+              >
+                <span aria-hidden>🌍</span>
+                <span>כל היעדים — מצאו לי לאן זול לטוס</span>
+              </button>
+            </li>
+          )}
           {items.map((p) => (
             <li key={`${p.code}-${p.name}`}>
               <button

@@ -1,5 +1,9 @@
 import "server-only";
-import type { FlightResult, HotelResult } from "@/lib/travel/types";
+import type {
+  AnywhereResult,
+  FlightResult,
+  HotelResult,
+} from "@/lib/travel/types";
 import { travelpayouts } from "@/providers/travelpayouts";
 import { flightTouchesShabbat } from "@/lib/travel/shabbat";
 
@@ -24,6 +28,9 @@ interface RawFlight {
   link?: string;
   origin_airport?: string;
   destination_airport?: string;
+  /** city-directions מחזיר origin/destination (בלי סיומת _airport). */
+  origin?: string;
+  destination?: string;
   departure_at?: string;
   return_at?: string;
   airline?: string;
@@ -92,6 +99,112 @@ export async function searchFlights(
 
   // מדיניות שומר שבת (תמיד פעיל): לא מציגים טיסות שממריאות/נוחתות בשבת.
   return mapped.filter((f) => !flightTouchesShabbat(f));
+}
+
+export interface AnywhereQuery {
+  origin: string;
+  /** YYYY-MM-DD או YYYY-MM. חסר = הזול לכל יעד ללא תאריך (city-directions). */
+  departDate?: string;
+  returnDate?: string;
+  currency?: string;
+  /** מספר יעדים מקסימלי בתוצאה. */
+  limit?: number;
+}
+
+/** YYYY-MM-DD מתוך ISO (לבניית deep-link מתויג לשותף). */
+function isoDate(iso: string): string {
+  return iso.slice(0, 10);
+}
+
+/**
+ * חיפוש "לכל מקום" — היעדים הזולים ממוצא נתון, ממוינים מהזול לגבוה.
+ * עם תאריך: prices_for_dates עם origin בלבד. בלי תאריך: city-directions.
+ * צד שרת בלבד, cache 15 דק'. סינון שבת חל כרגיל.
+ */
+export async function searchAnywhere(
+  q: AnywhereQuery,
+): Promise<AnywhereResult[]> {
+  const currency = q.currency ?? "ils";
+  const origin = q.origin.toUpperCase();
+  const limit = q.limit ?? 40;
+
+  // רשומות גולמיות מנורמלות למבנה משותף (שתי המקורות).
+  let rows: RawFlight[];
+
+  if (q.departDate) {
+    const params = new URLSearchParams({
+      origin,
+      departure_at: q.departDate,
+      currency,
+      sorting: "price",
+      limit: "100",
+    });
+    if (q.returnDate) params.set("return_at", q.returnDate);
+    const res = await fetch(
+      `https://api.travelpayouts.com/aviasales/v3/prices_for_dates?${params.toString()}`,
+      {
+        headers: { "X-Access-Token": TOKEN },
+        next: { revalidate: 900 },
+        signal: AbortSignal.timeout(8000),
+      },
+    );
+    if (!res.ok) throw new Error(`travelpayouts anywhere ${res.status}`);
+    const json = (await res.json()) as { data?: RawFlight[] };
+    rows = json.data ?? [];
+  } else {
+    const params = new URLSearchParams({ origin, currency });
+    const res = await fetch(
+      `https://api.travelpayouts.com/v1/city-directions?${params.toString()}&token=${TOKEN}`,
+      { next: { revalidate: 900 }, signal: AbortSignal.timeout(8000) },
+    );
+    if (!res.ok) throw new Error(`travelpayouts city-directions ${res.status}`);
+    const json = (await res.json()) as { data?: Record<string, RawFlight> };
+    rows = Object.values(json.data ?? {});
+  }
+
+  // סינון שבת + דדופ ליעד (הזול ביותר לכל קוד יעד).
+  const cheapest = new Map<string, AnywhereResult>();
+  for (const r of rows) {
+    // prices_for_dates → *_airport; city-directions → origin/destination.
+    const dest = (r.destination_airport ?? r.destination ?? "").toUpperCase();
+    const originCode = (r.origin_airport ?? r.origin ?? origin).toUpperCase();
+    const price = r.price ?? 0;
+    const departureAt = r.departure_at ?? "";
+    if (!dest || dest === origin || price <= 0 || !departureAt) continue;
+
+    const shabbat = flightTouchesShabbat({
+      departureAt,
+      returnAt: r.return_at || undefined,
+      durationMinutes: r.duration ?? 0,
+      returnDurationMinutes: r.duration_back ?? 0,
+      originAirport: originCode,
+      destinationAirport: dest,
+    });
+    if (shabbat) continue;
+
+    const existing = cheapest.get(dest);
+    if (existing && existing.priceFrom <= price) continue;
+
+    cheapest.set(dest, {
+      destinationCode: dest,
+      priceFrom: price,
+      currency,
+      departureAt,
+      returnAt: r.return_at || undefined,
+      transfers: r.transfers ?? 0,
+      handoffUrl: travelpayouts.flightSearchUrl({
+        originIata: origin,
+        destinationIata: dest,
+        departDate: isoDate(departureAt),
+        returnDate: r.return_at ? isoDate(r.return_at) : undefined,
+        adults: 1,
+      }),
+    });
+  }
+
+  return [...cheapest.values()]
+    .sort((a, b) => a.priceFrom - b.priceFrom)
+    .slice(0, limit);
 }
 
 export interface HotelSearchQuery {

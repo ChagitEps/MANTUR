@@ -193,6 +193,120 @@ export const DESTINATIONS: Destination[] = [
       "שיט על נהר הוולטבה",
     ],
   },
+  {
+    slug: "thessaloniki",
+    code: "SKG",
+    he: "סלוניקי",
+    en: "Thessaloniki",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Tessaloniki_BW_2017-10-05_18-22-47.jpg/1280px-Tessaloniki_BW_2017-10-05_18-22-47.jpg",
+    intro:
+      "עיר הנמל הצפונית של יוון — טיילת ים ארוכה, אוכל יווני מעולה ואווירה צעירה ותוססת. כשעתיים טיסה מתל אביב.",
+    whenToFly:
+      "אביב (אפריל–יוני) וסתיו (ספטמבר–אוקטובר) נעימים במיוחד. הקיץ חם וחיי הלילה שוקקים; החורף מתון וגשום.",
+    whatToDo: [
+      "המגדל הלבן וטיילת הים",
+      "העיר העתיקה (Ano Poli) והחומות",
+      "רוטונדה וקשת גלריוס",
+      "שוק מודיאנו והשווקים",
+      "בתי קפה, בוזוקי ואוכל רחוב",
+    ],
+  },
+  {
+    slug: "batumi",
+    code: "BUS",
+    he: "בטומי",
+    en: "Batumi",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Batumi_Skyline_%2831%29.jpg/1280px-Batumi_Skyline_%2831%29.jpg",
+    intro:
+      "עיר החוף של גאורגיה על הים השחור — קו רקיע מודרני, טיילת מרשימה, קזינו ומחירים נוחים. יעד אהוב על ישראלים.",
+    whenToFly:
+      "קיץ (יוני–ספטמבר) לים ולחוף. האביב והסתיו נעימים ושקטים יותר; החורף גשום ומתון.",
+    whatToDo: [
+      "טיילת הבולוואר לאורך הים",
+      "פסל 'עלי וניניו' הנע",
+      "העיר העתיקה וכיכר פיאצה",
+      "רכבל ארגו לתצפית",
+      "יינות ואוכל גאורגי (חצ'אפורי, ח'ינקלי)",
+    ],
+  },
+  {
+    slug: "tbilisi",
+    code: "TBS",
+    he: "טביליסי",
+    en: "Tbilisi",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/View_of_Tbilisi_from_Tabori_Church_2023-10-08-2.jpg/1280px-View_of_Tbilisi_from_Tabori_Church_2023-10-08-2.jpg",
+    intro:
+      "בירת גאורגיה — עיר עתיקה וצבעונית של סמטאות, מרחצאות גופרית, יין ואוכל מצוין במחירים זולים. שער להרי הקווקז.",
+    whenToFly:
+      "אביב (מאי–יוני) וסתיו (ספטמבר–אוקטובר) אידיאליים. הקיץ חם; החורף קר ומושלג בהרים הסמוכים.",
+    whatToDo: [
+      "העיר העתיקה ומרחצאות אבנוטובני",
+      "מבצר נריקלה והרכבל",
+      "שדרת רוסתוולי",
+      "כנסיית השילוש הקדוש (צמינדה סמבה)",
+      "טיולי יום להרי הקווקז וקאזבגי",
+    ],
+  },
+  {
+    slug: "vienna",
+    code: "VIE",
+    he: "וינה",
+    en: "Vienna",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Schoenbrunn_philharmoniker_2012.jpg/1280px-Schoenbrunn_philharmoniker_2012.jpg",
+    intro:
+      "בירת אוסטריה הקיסרית — ארמונות מפוארים, מוזיקה קלאסית, בתי קפה מסורתיים ואיכות חיים גבוהה. אלגנטית וקסומה.",
+    whenToFly:
+      "אביב וסתיו נעימים לטיולים. דצמבר קסום עם שווקי חג מולד; הקיץ חמים והפארקים פורחים.",
+    whatToDo: [
+      "ארמון שנברון וגניו",
+      "ארמון הופבורג והרובע ההיסטורי",
+      "אופרה וקונצרטים קלאסיים",
+      "בתי קפה ווינאים ועוגת זאכר",
+      "גלגל הענק בפראטר",
+    ],
+  },
+  {
+    slug: "milan",
+    code: "MIL",
+    he: "מילאנו",
+    en: "Milan",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Milan_Cathedral_from_Piazza_del_Duomo.jpg/1280px-Milan_Cathedral_from_Piazza_del_Duomo.jpg",
+    intro:
+      "בירת האופנה והעיצוב של איטליה — קתדרלה מפוארת, שופינג ברמה עולמית, אמנות ואוכל צפון-איטלקי. שער לאגמי הצפון.",
+    whenToFly:
+      "אביב (אפריל–יוני) וסתיו (ספטמבר–אוקטובר) נעימים. הקיץ חם ולח; החורף קריר עם עונת שופינג ואופנה.",
+    whatToDo: [
+      "הדואומו והגג עם התצפית",
+      "גלריית ויטוריו אמנואלה",
+      "'הסעודה האחרונה' של דה וינצ'י",
+      "רובע נאווילי והתעלות",
+      "טיול יום לאגם קומו",
+    ],
+  },
+  {
+    slug: "santorini",
+    code: "JTR",
+    he: "סנטוריני",
+    en: "Santorini",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/1000_Three_domes_of_Oia_in_Santorini_Photo_by_Giles_Laurent.jpg/1280px-1000_Three_domes_of_Oia_in_Santorini_Photo_by_Giles_Laurent.jpg",
+    intro:
+      "פנינת הקיקלאדס ביוון — בתים לבנים וכיפות כחולות על צוקי הקלדרה, שקיעות מרהיבות וחופים וולקניים. יעד רומנטי בהמלצה.",
+    whenToFly:
+      "מאי–יוני וספטמבר–אוקטובר אידיאליים (פחות עומס, מזג אוויר נעים). יולי–אוגוסט חמים ועמוסים מאוד.",
+    whatToDo: [
+      "שקיעה בכפר אויה (Oia)",
+      "טיילת פירה על הקלדרה",
+      "חופים וולקניים (Red Beach, Kamari)",
+      "שיט לפי הרי הגעש והמעיינות החמים",
+      "יקבים וטעימות יין מקומי",
+    ],
+  },
 ];
 
 export function getDestination(slug: string): Destination | undefined {

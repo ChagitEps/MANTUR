@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { getTravelProvider } from "@/providers/travelpayouts";
 import type { Scope } from "@/lib/travel/types";
-import { LocationInput, type SelectedPlace } from "@/components/LocationInput";
+import {
+  LocationInput,
+  ANYWHERE,
+  type SelectedPlace,
+} from "@/components/LocationInput";
 import { DateRangeField } from "@/components/DateRangeField";
 import { GuestsField } from "@/components/GuestsField";
 import { trackSearch, trackPartnerClick } from "@/lib/analytics/track";
@@ -52,6 +56,25 @@ export function SearchBar({
     setError(null);
 
     if (effectiveTab === "flights") {
+      // "לכל מקום" — תאריך אופציונלי; מנווט לעמוד Everywhere.
+      if (destination?.code === ANYWHERE.code) {
+        if (!origin?.code) {
+          setError("יש לבחור מוצא.");
+          return;
+        }
+        const params = new URLSearchParams({ origin: origin.code });
+        if (range?.from) params.set("depart", toISO(range.from));
+        if (range?.to) params.set("return", toISO(range.to));
+        trackSearch("flight", {
+          origin: origin.code,
+          destination: ANYWHERE.code,
+          depart: range?.from ? toISO(range.from) : "",
+          return: range?.to ? toISO(range.to) : "",
+        });
+        router.push(`/flights/anywhere?${params.toString()}`);
+        return;
+      }
+
       if (!origin?.code || !destination?.code || !range?.from) {
         setError("יש לבחור מוצא, יעד ותאריך יציאה.");
         return;
@@ -179,10 +202,11 @@ export function SearchBar({
               />
               <LocationInput
                 label="לאן"
-                placeholder="עיר או שדה תעופה"
+                placeholder="עיר, שדה תעופה, או כל היעדים"
                 value={initialDestination?.name ?? ""}
                 onSelect={setDestination}
                 kind="flight"
+                allowAnywhere
               />
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
